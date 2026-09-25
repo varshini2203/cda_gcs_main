@@ -1,0 +1,11 @@
+module Auth
+singleton AuthManager 1.0 AuthManager.qml
+singleton AuthTheme   1.0 AuthTheme.qml
+AuthButton      1.0 AuthButton.qml
+AuthTextField   1.0 AuthTextField.qml
+AuthBrandPanel  1.0 AuthBrandPanel.qml
+SplashScreen    1.0 SplashScreen.qml
+RegisterScreen  1.0 RegisterScreen.qml
+LoginScreen     1.0 LoginScreen.qml
+HomeScreen      1.0 HomeScreen.qml
+AuthFlow        1.0 AuthFlow.qml

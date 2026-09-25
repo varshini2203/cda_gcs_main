@@ -143,6 +143,9 @@ macro(add_qt_android_apk TARGET SOURCE_TARGET)
     # make sure that the output directory for the Android package exists
     file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/libs/${ANDROID_ABI})
 
+    # NEW: plain target name (e.g. "QGroundControl") for androiddeployqt's "application-binary" field
+    set(QT_ANDROID_APP_TARGET_NAME ${SOURCE_TARGET})
+
     # create the configuration file that will feed androiddeployqt
     configure_file(${QT_ANDROID_SOURCE_DIR}/qtdeploy.json.in ${CMAKE_CURRENT_BINARY_DIR}/qtdeploy.json @ONLY)
 

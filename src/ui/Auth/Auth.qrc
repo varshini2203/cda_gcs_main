@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file alias="Auth/qmldir">qmldir</file>
+        <file alias="Auth/AuthManager.qml">AuthManager.qml</file>
+        <file alias="Auth/AuthTheme.qml">AuthTheme.qml</file>
+        <file alias="Auth/AuthButton.qml">AuthButton.qml</file>
+        <file alias="Auth/AuthTextField.qml">AuthTextField.qml</file>
+        <file alias="Auth/AuthBrandPanel.qml">AuthBrandPanel.qml</file>
+        <file alias="Auth/SplashScreen.qml">SplashScreen.qml</file>
+        <file alias="Auth/RegisterScreen.qml">RegisterScreen.qml</file>
+        <file alias="Auth/LoginScreen.qml">LoginScreen.qml</file>
+        <file alias="Auth/HomeScreen.qml">HomeScreen.qml</file>
+        <file alias="Auth/AuthFlow.qml">AuthFlow.qml</file>
+        <file alias="Auth/images/logo_mark.svg">images/logo_mark.svg</file>
+        <file alias="Auth/images/logo_mark_white.svg">images/logo_mark_white.svg</file>
+        <file alias="Auth/images/drone_illustration.svg">images/drone_illustration.svg</file>
+        <file alias="Auth/images/SplashScreen.png">images/SplashScreen.png</file>
+    </qresource>
+</RCC>

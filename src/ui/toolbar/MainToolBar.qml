@@ -64,6 +64,54 @@ Rectangle {
         anchors.bottom:         parent.bottom
         spacing:                ScreenTools.defaultFontPixelWidth / 2
 
+        // Back / Home button - always returns to the Auth flow Home screen
+        // from the Fly or Plan view, mirroring the Home button used inside
+        // the tool drawer (Analyze/Setup/Settings).
+        Rectangle {
+            id:                     homeReturnButton
+            Layout.preferredHeight: viewButtonRow.height
+            width:                  homeReturnRow.implicitWidth + ScreenTools.defaultFontPixelWidth * 1.5
+            color:                  homeReturnMouse.pressed ? Qt.darker(_root.color, 1.15) : "transparent"
+
+            RowLayout {
+                id:                 homeReturnRow
+                anchors.centerIn:   parent
+                spacing:            ScreenTools.defaultFontPixelWidth / 2
+
+                Canvas {
+                    id:     homeReturnIcon
+                    width:  ScreenTools.defaultFontPixelHeight
+                    height: width
+                    Layout.alignment: Qt.AlignVCenter
+                    onPaint: {
+                        var ctx = getContext("2d")
+                        ctx.reset()
+                        ctx.strokeStyle = qgcPal.buttonText
+                        ctx.lineWidth   = 1.6
+                        var w = width, h = height
+                        ctx.beginPath()
+                        // Back chevron
+                        ctx.moveTo(w * 0.62, h * 0.12)
+                        ctx.lineTo(w * 0.22, h * 0.5)
+                        ctx.lineTo(w * 0.62, h * 0.88)
+                        ctx.stroke()
+                    }
+                }
+
+                QGCLabel {
+                    text:   qsTr("Home")
+                    color:  qgcPal.buttonText
+                }
+            }
+
+            MouseArea {
+                id:             homeReturnMouse
+                anchors.fill:   parent
+                cursorShape:    Qt.PointingHandCursor
+                onClicked:      mainWindow.returnToHome()
+            }
+        }
+
         QGCToolBarButton {
             id:                     currentButton
             Layout.preferredHeight: viewButtonRow.height

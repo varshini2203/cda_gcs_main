@@ -1,3 +1,4 @@
+find_package(Qt5 REQUIRED COMPONENTS Core SerialPort)
 
 set(EXTRA_SRC)
 if(BUILD_TESTING)
@@ -53,5 +54,10 @@ target_link_libraries(comm
 		Qt5::Widgets
 )
 
-target_include_directories(comm INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
+target_include_directories(comm
+	PRIVATE
+		${Qt5Core_PRIVATE_INCLUDE_DIRS}
+		${Qt5SerialPort_PRIVATE_INCLUDE_DIRS}
+	INTERFACE
+		${CMAKE_CURRENT_SOURCE_DIR}
+)

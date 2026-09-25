@@ -13,7 +13,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 include(FeatureSummary)
 
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang" OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options(-Wall -Wextra)
+	add_compile_options(-Wall -Wextra)
 endif()
 
 # CMake build type
@@ -37,10 +37,10 @@ set(COPYRIGHT "Copyright (c) 2018 QGroundControl. All rights reserved.")
 set(IDENTIFIER "io.mavlink.qgroundcontrol")
 
 add_definitions(
-	-DQGC_APPLICATION_NAME="QGroundControl"
-	-DQGC_ORG_NAME="QGroundControl.org"
-	-DQGC_ORG_DOMAIN="org.qgroundcontrol"
-	)
+	-DQGC_APPLICATION_NAME="Chennai Drone Academy"
+	-DQGC_ORG_NAME="Chennai Drone Academy"
+	-DQGC_ORG_DOMAIN="org.chennaidroneacademy"
+        )
 
 include(Git)
 message(STATUS "QGroundControl version: ${GIT_VERSION}")
@@ -63,8 +63,8 @@ if(COMPILE_QML)
     find_package(Qt5QuickCompiler)
 
     set_package_properties(Qt5QuickCompiler PROPERTIES
-        DESCRIPTION "Pre-compile QML files using the Qt Quick compiler."
-        TYPE OPTIONAL
+	DESCRIPTION "Pre-compile QML files using the Qt Quick compiler."
+	TYPE OPTIONAL
     )
 endif()
 
@@ -93,14 +93,14 @@ pkg_check_modules(GST
 
 if (GST_FOUND)
     include_directories(
-        ${GST_INCLUDE_DIRS}
-        src/Taisync
-        src/Microhard
+	${GST_INCLUDE_DIRS}
+	src/Taisync
+	src/Microhard
     )
     add_definitions(
-        -DQGC_GST_STREAMING
-        -DQGC_GST_TAISYNC_ENABLED
-        -DQGC_GST_MICROHARD_ENABLED
+	-DQGC_GST_STREAMING
+	-DQGC_GST_TAISYNC_ENABLED
+	-DQGC_GST_MICROHARD_ENABLED
     )
 endif()
 
@@ -113,7 +113,7 @@ add_definitions(
 #
 find_package(Qt5 ${QT_VERSION}
 	COMPONENTS
-		Bluetooth
+	        Bluetooth
 		Charts
 		Concurrent
 		Core
@@ -133,16 +133,26 @@ find_package(Qt5 ${QT_VERSION}
 		Xml
 	REQUIRED
 	HINTS
-		${QT_LIBRARY_HINTS}
+	        ${QT_LIBRARY_HINTS}
 )
+
+if(ANDROID)
+	find_package(Qt5 ${QT_VERSION}
+		COMPONENTS
+		        AndroidExtras
+		REQUIRED
+		HINTS
+		        ${QT_LIBRARY_HINTS}
+	)
+endif()
 
 if(NOT QT_MKSPEC MATCHES "winrt")
 	find_package(Qt5 ${QT_VERSION}
 		COMPONENTS
-			SerialPort
+		        SerialPort
 		REQUIRED
 		HINTS
-			${QT_LIBRARY_HINTS}
+		        ${QT_LIBRARY_HINTS}
 	)
 endif()
 
@@ -170,7 +180,8 @@ set(QGC_RESOURCES
 	src/FirmwarePlugin/PX4/PX4Resources.qrc
 	src/Airmap/airmap.qrc
 	src/Airmap/dummy/airmap_dummy.qrc
-	)
+	src/ui/Auth/Auth.qrc
+        )
 
 if(BUILD_TESTING)
 	list(APPEND QGC_RESOURCES
@@ -180,22 +191,27 @@ endif()
 
 if(ANDROID)
 	add_library(QGroundControl SHARED ${QGC_RESOURCES})
+elseif(WIN32)
+	add_executable(QGroundControl ${QGC_RESOURCES} qgcwinicon.rc)
 else()
 	add_executable(QGroundControl ${QGC_RESOURCES})
 endif()
 
 target_link_libraries(QGroundControl PRIVATE qgc)
 
+if(ANDROID)
+	target_link_options(QGroundControl PRIVATE "-Wl,-u,main")
+endif()
+
 if(BUILD_TESTING)
-        target_link_libraries(QGroundControl PRIVATE Qt5::Test)
+	target_link_libraries(QGroundControl PRIVATE Qt5::Test)
 endif()
 
 if(NOT QT_MKSPEC MATCHES "winrt")
 	target_link_libraries(QGroundControl
 		PUBLIC
-			Qt5::SerialPort
+		        Qt5::SerialPort
 		)
 endif()
 
 include(QGCDeploy)
-

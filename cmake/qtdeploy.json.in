@@ -4,12 +4,16 @@
  "sdk": "@QT_ANDROID_SDK_ROOT@",
  "ndk": "@QT_ANDROID_NDK_ROOT@",
  "sdkBuildToolsRevision": "@QT_ANDROID_SDK_BUILDTOOLS_REVISION@",
- "toolchain-prefix": "@ANDROID_TOOLCHAIN_MACHINE_NAME@",
- "tool-prefix": "@ANDROID_TOOLCHAIN_MACHINE_NAME@",
+ "toolchain-prefix": "llvm",
+ "tool-prefix": "llvm",
  "toolchain-version": "@ANDROID_COMPILER_VERSION@",
  "ndk-host": "@ANDROID_NDK_HOST_SYSTEM_NAME@",
+ "architectures": {
+     "@ANDROID_ABI@": "@ANDROID_ABI@"
+ },
  "target-architecture": "@ANDROID_ABI@",
- "application-binary": "@QT_ANDROID_APP_PATH@",
+ "stdcpp-path": "@QT_ANDROID_NDK_ROOT@/sources/cxx-stl/llvm-libc++/libs",
+ "application-binary": "@QT_ANDROID_APP_TARGET_NAME@",
  "android-package": "@QT_ANDROID_APP_PACKAGE_NAME@",
  "android-app-name": "@QT_ANDROID_APP_NAME@",
  @QT_ANDROID_APP_EXTRA_LIBS@

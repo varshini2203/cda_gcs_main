@@ -19,6 +19,7 @@ import QGroundControl.Controls      1.0
 import QGroundControl.ScreenTools   1.0
 import QGroundControl.FlightDisplay 1.0
 import QGroundControl.FlightMap     1.0
+import Auth                           1.0
 
 /// @brief Native QML top level window
 /// All properties defined here are visible to all QML pages.
@@ -69,6 +70,7 @@ ApplicationWindow {
     }
 
     property var                _rgPreventViewSwitch:       [ false ]
+    property bool               _appEntered:                false   ///< true once the user has signed in and left the home screen
 
     readonly property real      _topBottomMargins:          ScreenTools.defaultFontPixelHeight * 0.5
 
@@ -162,6 +164,17 @@ ApplicationWindow {
 
     function showSettingsTool() {
         showTool(qsTr("Application Settings"), "AppSettings.qml", "/res/QGCLogoWhite")
+    }
+
+    /// Leaves whatever view or tool is currently showing (Fly, Plan, Analyze,
+    /// Vehicle Setup, Application Settings) and returns to the custom Home
+    /// screen from the Auth flow, without logging the user out.
+    function returnToHome() {
+        toolDrawer.visible     = false
+        toolDrawer.toolSource  = ""
+        flightView.visible     = false
+        planView.visible       = false
+        mainWindow._appEntered = false
     }
 
     //-------------------------------------------------------------------------
@@ -322,11 +335,11 @@ ApplicationWindow {
     header: MainToolBar {
         id:         toolbar
         height:     ScreenTools.toolbarHeight
-        visible:    !QGroundControl.videoManager.fullScreen
+        visible:    !QGroundControl.videoManager.fullScreen && mainWindow._appEntered
     }
 
     footer: LogReplayStatusBar {
-        visible: QGroundControl.settingsManager.flyViewSettings.showLogReplayStatusBar.rawValue
+        visible: QGroundControl.settingsManager.flyViewSettings.showLogReplayStatusBar.rawValue && mainWindow._appEntered
     }
 
     Drawer {
@@ -469,12 +482,44 @@ ApplicationWindow {
     FlyView {
         id:             flightView
         anchors.fill:   parent
+        visible:        false   ///< shown once mainWindow._appEntered becomes true, via showFlyView()
     }
 
     PlanView {
         id:             planView
         anchors.fill:   parent
         visible:        false
+    }
+
+    //-------------------------------------------------------------------------
+    //-- Auth flow (Splash -> Register/Login -> Home)
+    //-- Covers the whole window until the user signs in and taps
+    //-- Start (or a nav item) on the home screen.
+    Item {
+        id:             authOverlay
+        anchors.fill:   parent
+        z:              1000            ///< stay above flightView/planView/toolDrawer
+        visible:        !mainWindow._appEntered
+
+        AuthFlow {
+            anchors.fill:   parent
+            onEnterApp: {
+                mainWindow._appEntered = true
+                mainWindow.showFlyView()
+            }
+            onEnterPlanView: {
+                mainWindow._appEntered = true
+                mainWindow.showPlanView()
+            }
+            onEnterAnalyzeTool: {
+                mainWindow._appEntered = true
+                mainWindow.showAnalyzeTool()
+            }
+            onEnterSettingsTool: {
+                mainWindow._appEntered = true
+                mainWindow.showSettingsTool()
+            }
+        }
     }
 
     Drawer {
@@ -501,6 +546,7 @@ ApplicationWindow {
             color:          qgcPal.toolbarBackground
 
             RowLayout {
+                id:                 backRow
                 anchors.leftMargin: ScreenTools.defaultFontPixelWidth
                 anchors.left:       parent.left
                 anchors.top:        parent.top
@@ -513,17 +559,19 @@ ApplicationWindow {
                     height:                 ScreenTools.defaultFontPixelHeight * 2
                     fillMode:               Image.PreserveAspectFit
                     mipmap:                 true
-                    color:                  qgcPal.text
+                    color:                  backRowMouse.containsMouse ? qgcPal.buttonHighlightText : qgcPal.text
                 }
 
                 QGCLabel {
                     id:     backTextLabel
                     text:   qsTr("Back")
+                    color:  backRowMouse.containsMouse ? qgcPal.buttonHighlightText : qgcPal.text
                 }
 
                 QGCLabel {
                     font.pointSize: ScreenTools.largeFontPointSize
                     text:           "<"
+                    color:          backRowMouse.containsMouse ? qgcPal.buttonHighlightText : qgcPal.text
                 }
 
                 QGCColoredImage {
@@ -539,16 +587,71 @@ ApplicationWindow {
                     id:             toolbarDrawerText
                     font.pointSize: ScreenTools.largeFontPointSize
                 }
+
+                // The Back row above was purely decorative - it had no
+                // MouseArea, so tapping it did nothing. This closes the
+                // tool drawer (Settings/Setup/Analyze) and drops back to
+                // whichever view (Fly or Plan) was open before the tool
+                // was opened, without going all the way to Home.
+                MouseArea {
+                    anchors.left:   backIcon.left
+                    anchors.right:  toolbarDrawerText.left
+                    anchors.top:    parent.top
+                    anchors.bottom: parent.bottom
+                    id:             backRowMouse
+                    hoverEnabled:   true
+                    cursorShape:    Qt.PointingHandCursor
+                    onClicked: {
+                        toolDrawer.visible    = false
+                        toolDrawer.toolSource = ""
+                    }
+                }
             }
 
-            QGCMouseArea {
-                anchors.top:        parent.top
-                anchors.bottom:     parent.bottom
-                x:                  parent.mapFromItem(backIcon, backIcon.x, backIcon.y).x
-                width:              (backTextLabel.x + backTextLabel.width) - backIcon.x
-                onClicked: {
-                    toolDrawer.visible      = false
-                    toolDrawer.toolSource   = ""
+            // Home button - always returns to the Auth flow Home screen,
+            // regardless of which tool (Analyze/Setup/Settings) is open.
+            Rectangle {
+                id:                     homeReturnButton
+                anchors.verticalCenter: parent.verticalCenter
+                anchors.right:          parent.right
+                anchors.rightMargin:    ScreenTools.defaultFontPixelWidth
+                width:                  homeReturnRow.implicitWidth + ScreenTools.defaultFontPixelWidth * 1.5
+                height:                 ScreenTools.defaultFontPixelHeight * 2.2
+                radius:                 4
+                color:                  homeReturnMouse.pressed ? Qt.darker(qgcPal.windowShade, 1.15) : "transparent"
+
+                RowLayout {
+                    id:                 homeReturnRow
+                    anchors.centerIn:   parent
+                    spacing:            ScreenTools.defaultFontPixelWidth / 2
+
+                    Canvas {
+                        id:     homeReturnIcon
+                        width:  ScreenTools.defaultFontPixelHeight
+                        height: width
+                        onPaint: {
+                            var ctx = getContext("2d")
+                            ctx.reset()
+                            ctx.strokeStyle = qgcPal.text
+                            ctx.lineWidth   = 1.6
+                            var w = width, h = height
+                            ctx.beginPath()
+                            ctx.moveTo(1, h * 0.55); ctx.lineTo(w / 2, 1); ctx.lineTo(w - 1, h * 0.55)
+                            ctx.stroke()
+                            ctx.strokeRect(w * 0.2, h * 0.55, w * 0.6, h * 0.4)
+                        }
+                    }
+
+                    QGCLabel {
+                        text: qsTr("Home")
+                    }
+                }
+
+                MouseArea {
+                    id:             homeReturnMouse
+                    anchors.fill:   parent
+                    cursorShape:    Qt.PointingHandCursor
+                    onClicked:      mainWindow.returnToHome()
                 }
             }
         }
