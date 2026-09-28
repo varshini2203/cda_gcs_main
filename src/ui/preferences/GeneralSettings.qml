@@ -64,6 +64,11 @@ Rectangle {
 
     readonly property real _internalWidthRatio: 0.8
 
+    // CDA look
+    readonly property color _cardBorder:    "#cfe0f3"
+    readonly property color _titleColor:    "#1e6fd0"
+    readonly property real  _cardRadius:    ScreenTools.defaultFontPixelWidth
+
         QGCFlickable {
             clip:               true
             anchors.fill:       parent
@@ -80,14 +85,20 @@ Rectangle {
                     anchors.horizontalCenter:   parent.horizontalCenter
 
                     QGCLabel {
-                        id:         flyViewSectionLabel
-                        text:       qsTr("Fly View")
-                        visible:    QGroundControl.settingsManager.flyViewSettings.visible
+                        id:             flyViewSectionLabel
+                        text:           qsTr("Fly View")
+                        visible:        QGroundControl.settingsManager.flyViewSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredHeight: flyViewCol.height + (_margins * 2)
                         Layout.preferredWidth:  flyViewCol.width + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                flyViewSectionLabel.visible
                         Layout.fillWidth:       true
 
@@ -188,6 +199,7 @@ Rectangle {
                                     text:               qsTr("Guided Command Settings")
                                     Layout.columnSpan:  2
                                     Layout.alignment:   Qt.AlignHCenter
+                                    font.bold:          true
                                 }
 
                                 QGCLabel {
@@ -233,6 +245,7 @@ Rectangle {
                                     text:               qsTr("Video Settings")
                                     Layout.columnSpan:  2
                                     Layout.alignment:   Qt.AlignHCenter
+                                    font.bold:          true
                                 }
 
                                 QGCLabel {
@@ -352,14 +365,20 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: planViewSectionLabel.visible }
                     QGCLabel {
-                        id:         planViewSectionLabel
-                        text:       qsTr("Plan View")
-                        visible:    _planViewSettings.visible
+                        id:             planViewSectionLabel
+                        text:           qsTr("Plan View")
+                        visible:        _planViewSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredHeight: planViewCol.height + (_margins * 2)
                         Layout.preferredWidth:  planViewCol.width + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                planViewSectionLabel.visible
                         Layout.fillWidth:       true
 
@@ -403,14 +422,20 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: unitsSectionLabel.visible }
                     QGCLabel {
-                        id:         unitsSectionLabel
-                        text:       qsTr("Units")
-                        visible:    QGroundControl.settingsManager.unitsSettings.visible
+                        id:             unitsSectionLabel
+                        text:           qsTr("Units")
+                        visible:        QGroundControl.settingsManager.unitsSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredHeight: unitsGrid.height + (_margins * 2)
                         Layout.preferredWidth:  unitsGrid.width + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                miscSectionLabel.visible
                         Layout.fillWidth:       true
 
@@ -440,15 +465,21 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: miscSectionLabel.visible }
                     QGCLabel {
-                        id:         miscSectionLabel
-                        text:       qsTr("Miscellaneous")
-                        visible:    QGroundControl.settingsManager.appSettings.visible
+                        id:             miscSectionLabel
+                        text:           qsTr("Miscellaneous")
+                        visible:        QGroundControl.settingsManager.appSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredWidth:  Math.max(comboGrid.width, miscCol.width) + (_margins * 2)
                         Layout.preferredHeight: (pathRow.visible ? pathRow.y + pathRow.height : miscColItem.y + miscColItem.height)  + (_margins * 2)
                         Layout.fillWidth:       true
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                miscSectionLabel.visible
 
                         Item {
@@ -689,15 +720,21 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: telemetryLogSectionLabel.visible }
                     QGCLabel {
-                        id:         telemetryLogSectionLabel
-                        text:       qsTr("Telemetry Logs from Vehicle")
-                        visible:    telemetryRect.visible
+                        id:             telemetryLogSectionLabel
+                        text:           qsTr("Telemetry Logs from Vehicle")
+                        visible:        telemetryRect.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         id:                     telemetryRect
                         Layout.preferredHeight: loggingCol.height + (_margins * 2)
                         Layout.preferredWidth:  loggingCol.width + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         Layout.fillWidth:       true
                         visible:                promptSaveLog._telemetrySave.visible || logIfNotArmed._telemetrySaveNotArmed.visible || promptSaveCsv._saveCsvTelemetry.visible
                         ColumnLayout {
@@ -735,14 +772,20 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: autoConnectSectionLabel.visible }
                     QGCLabel {
-                        id:         autoConnectSectionLabel
-                        text:       qsTr("AutoConnect to the following devices")
-                        visible:    QGroundControl.settingsManager.autoConnectSettings.visible
+                        id:             autoConnectSectionLabel
+                        text:           qsTr("AutoConnect to the following devices")
+                        visible:        QGroundControl.settingsManager.autoConnectSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredWidth:  autoConnectCol.width + (_margins * 2)
                         Layout.preferredHeight: autoConnectCol.height + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                autoConnectSectionLabel.visible
                         Layout.fillWidth:       true
 
@@ -850,14 +893,20 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: rtkSectionLabel.visible }
                     QGCLabel {
-                        id:         rtkSectionLabel
-                        text:       qsTr("RTK GPS")
-                        visible:    QGroundControl.settingsManager.rtkSettings.visible
+                        id:             rtkSectionLabel
+                        text:           qsTr("RTK GPS")
+                        visible:        QGroundControl.settingsManager.rtkSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredHeight: rtkGrid.height + (_margins * 2)
                         Layout.preferredWidth:  rtkGrid.width + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                rtkSectionLabel.visible
                         Layout.fillWidth:       true
 
@@ -984,14 +1033,20 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: adsbSectionLabel.visible }
                     QGCLabel {
-                        id:         adsbSectionLabel
-                        text:       qsTr("ADSB Server")
-                        visible:    QGroundControl.settingsManager.adsbVehicleManagerSettings.visible
+                        id:             adsbSectionLabel
+                        text:           qsTr("ADSB Server")
+                        visible:        QGroundControl.settingsManager.adsbVehicleManagerSettings.visible
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredHeight: adsbGrid.y + adsbGrid.height + _margins
                         Layout.preferredWidth:  adsbGrid.width + (_margins * 2)
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                adsbSectionLabel.visible
                         Layout.fillWidth:       true
 
@@ -1047,15 +1102,21 @@ Rectangle {
 
                     Item { width: 1; height: _margins; visible: brandImageSectionLabel.visible }
                     QGCLabel {
-                        id:         brandImageSectionLabel
-                        text:       qsTr("Brand Image")
-                        visible:    QGroundControl.settingsManager.brandImageSettings.visible && !ScreenTools.isMobile
+                        id:             brandImageSectionLabel
+                        text:           qsTr("Brand Image")
+                        visible:        QGroundControl.settingsManager.brandImageSettings.visible && !ScreenTools.isMobile
+                        color:          _titleColor
+                        font.bold:      true
+                        font.pointSize: ScreenTools.mediumFontPointSize
                     }
                     Rectangle {
                         Layout.preferredWidth:  brandImageGrid.width + (_margins * 2)
                         Layout.preferredHeight: brandImageGrid.height + (_margins * 2)
                         Layout.fillWidth:       true
                         color:                  qgcPal.windowShade
+                        radius:                 _cardRadius
+                        border.width:           1
+                        border.color:           _cardBorder
                         visible:                brandImageSectionLabel.visible
 
                         GridLayout {

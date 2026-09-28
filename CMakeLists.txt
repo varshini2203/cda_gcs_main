@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(QGroundControl LANGUAGES C CXX)
+project(ChennaiDroneAcademy LANGUAGES C CXX)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo;MinSizeRel;Coverage")
 
@@ -32,9 +32,9 @@ message(STATUS "Build Type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "Qt version: ${QT_VERSION}")
 message(STATUS "Qt spec: ${QT_MKSPEC}")
 
-set(COMPANY "Mavlink")
-set(COPYRIGHT "Copyright (c) 2018 QGroundControl. All rights reserved.")
-set(IDENTIFIER "io.mavlink.qgroundcontrol")
+set(COMPANY "Chennai Drone Academy")
+set(COPYRIGHT "Copyright (c) 2026 Chennai Drone Academy. All rights reserved.")
+set(IDENTIFIER "org.chennaidroneacademy.cdagcs")
 
 add_definitions(
 	-DQGC_APPLICATION_NAME="Chennai Drone Academy"
@@ -196,6 +196,12 @@ elseif(WIN32)
 	add_executable(QGroundControl ${QGC_RESOURCES} qgcwinicon.rc)
 else()
 	add_executable(QGroundControl ${QGC_RESOURCES})
+endif()
+
+# Windows only: name the output exe ChennaiDroneAcademy.exe.
+# (Not applied on Android - the APK needs libQGroundControl.so.)
+if(WIN32)
+	set_target_properties(QGroundControl PROPERTIES OUTPUT_NAME "ChennaiDroneAcademy")
 endif()
 
 target_link_libraries(QGroundControl PRIVATE qgc)
