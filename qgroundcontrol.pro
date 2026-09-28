@@ -1436,3 +1436,5 @@ contains (CONFIG, QGC_DISABLE_INSTALLER_SETUP) {
 
 DISTFILES += \
     src/QmlControls/QGroundControl/Specific/qmldir
+
+RESOURCES += $$PWD/src/ui/Auth/Auth.qrc

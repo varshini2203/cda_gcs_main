@@ -144,6 +144,7 @@ if(ANDROID)
 		HINTS
 		        ${QT_LIBRARY_HINTS}
 	)
+        add_definitions(-D__mobile__)
 endif()
 
 if(NOT QT_MKSPEC MATCHES "winrt")
