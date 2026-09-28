@@ -38,7 +38,7 @@ const char* AppSettings::crashDirectory =           QT_TRANSLATE_NOOP("AppSettin
 DECLARE_SETTINGGROUP(App, "")
 {
     qmlRegisterUncreatableType<AppSettings>("QGroundControl.SettingsManager", 1, 0, "AppSettings", "Reference only");
-    QGCPalette::setGlobalTheme(indoorPalette()->rawValue().toBool() ? QGCPalette::Dark : QGCPalette::Light);
+    QGCPalette::setGlobalTheme(QGCPalette::Light); // ChennaiDroneAcademy: force sky-blue theme regardless of saved Indoor/Outdoor setting
 
     QSettings settings;
 
@@ -171,7 +171,7 @@ void AppSettings::_checkSavePathDirectories(void)
 
 void AppSettings::_indoorPaletteChanged(void)
 {
-    QGCPalette::setGlobalTheme(indoorPalette()->rawValue().toBool() ? QGCPalette::Dark : QGCPalette::Light);
+    QGCPalette::setGlobalTheme(QGCPalette::Light); // ChennaiDroneAcademy: force sky-blue theme regardless of saved Indoor/Outdoor setting
 }
 
 QString AppSettings::missionSavePath(void)

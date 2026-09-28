@@ -26,9 +26,14 @@ Rectangle {
     readonly property real _defaultTextWidth:   ScreenTools.defaultFontPixelWidth
     readonly property real _horizontalMargin:   _defaultTextWidth / 2
     readonly property real _verticalMargin:     _defaultTextHeight / 2
-    readonly property real _buttonHeight:       ScreenTools.isTinyScreen ? ScreenTools.defaultFontPixelHeight * 3 : ScreenTools.defaultFontPixelHeight * 2
+    readonly property real _buttonHeight:       ScreenTools.isTinyScreen ? ScreenTools.defaultFontPixelHeight * 3 : ScreenTools.defaultFontPixelHeight * 2.4
+    readonly property real _sidebarWidth:       _defaultTextWidth * 22
 
-    property bool _first: true
+    // CDA colours
+    readonly property color _navyTop:       "#0b2f66"
+    readonly property color _navyBottom:    "#1565c0"
+    readonly property color _skyBlue:       "#4fb3f6"
+    readonly property color _hoverBlue:     "#2a6fc0"
 
     QGCPalette { id: qgcPal }
 
@@ -37,76 +42,135 @@ Rectangle {
         __rightPanel.source = QGroundControl.corePlugin.settingsPages[QGroundControl.corePlugin.defaultSettings].url
     }
 
-    QGCFlickable {
-        id:                 buttonList
-        width:              buttonColumn.width
-        anchors.topMargin:  _verticalMargin
+    //-- Navigation sidebar
+    Rectangle {
+        id:                 sidebar
+        width:              _sidebarWidth
         anchors.top:        parent.top
         anchors.bottom:     parent.bottom
-        anchors.leftMargin: _horizontalMargin
         anchors.left:       parent.left
-        contentHeight:      buttonColumn.height + _verticalMargin
-        flickableDirection: Flickable.VerticalFlick
-        clip:               true
 
-        ColumnLayout {
-            id:         buttonColumn
-            spacing:    _verticalMargin
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: _navyTop }
+            GradientStop { position: 1.0; color: _navyBottom }
+        }
 
-            property real _maxButtonWidth: 0
+        QGCLabel {
+            id:                     sidebarTitle
+            anchors.top:            parent.top
+            anchors.topMargin:      _defaultTextHeight
+            anchors.left:           parent.left
+            anchors.leftMargin:     _defaultTextWidth * 1.5
+            text:                   qsTr("SETTINGS")
+            color:                  _skyBlue
+            font.bold:              true
+            font.pointSize:         ScreenTools.smallFontPointSize
+        }
 
-            Repeater {
-                model:  QGroundControl.corePlugin.settingsPages
-                QGCButton {
-                    height:             _buttonHeight
-                    text:               modelData.title
-                    autoExclusive:      true
-                    Layout.fillWidth:   true
+        QGCFlickable {
+            id:                 buttonList
+            anchors.top:        sidebarTitle.bottom
+            anchors.topMargin:  _verticalMargin
+            anchors.bottom:     sidebarFooter.top
+            anchors.left:       parent.left
+            anchors.right:      parent.right
+            anchors.leftMargin: _horizontalMargin * 2
+            anchors.rightMargin:_horizontalMargin * 2
+            contentHeight:      buttonColumn.height + _verticalMargin
+            flickableDirection: Flickable.VerticalFlick
+            clip:               true
 
-                    onClicked: {
-                        if (mainWindow.preventViewSwitch()) {
-                            return
+            ColumnLayout {
+                id:         buttonColumn
+                width:      buttonList.width
+                spacing:    _verticalMargin
+
+                Repeater {
+                    model:  QGroundControl.corePlugin.settingsPages
+
+                    Rectangle {
+                        id:                 navItem
+                        height:             _buttonHeight
+                        Layout.fillWidth:   true
+                        radius:             height / 4
+                        color:              _selected ? _skyBlue : (navMouse.containsMouse ? _hoverBlue : "transparent")
+
+                        property bool _selected: __rightPanel.source.toString() === modelData.url.toString()
+
+                        Rectangle {
+                            visible:                navItem._selected
+                            width:                  _defaultTextWidth / 3
+                            height:                 parent.height * 0.6
+                            radius:                 width / 2
+                            color:                  "white"
+                            anchors.left:           parent.left
+                            anchors.leftMargin:     _defaultTextWidth / 2
+                            anchors.verticalCenter: parent.verticalCenter
                         }
-                        if (__rightPanel.source !== modelData.url) {
-                            __rightPanel.source = modelData.url
-                        }
-                        checked = true
-                    }
 
-                    Component.onCompleted: {
-                        if(_first) {
-                            _first = false
-                            checked = true
+                        QGCLabel {
+                            text:                   modelData.title
+                            color:                  "white"
+                            font.bold:              navItem._selected
+                            anchors.left:           parent.left
+                            anchors.leftMargin:     _defaultTextWidth * 2
+                            anchors.right:          parent.right
+                            anchors.rightMargin:    _defaultTextWidth
+                            anchors.verticalCenter: parent.verticalCenter
+                            elide:                  Text.ElideRight
+                        }
+
+                        MouseArea {
+                            id:             navMouse
+                            anchors.fill:   parent
+                            hoverEnabled:   true
+                            onClicked: {
+                                if (mainWindow.preventViewSwitch()) {
+                                    return
+                                }
+                                if (__rightPanel.source !== modelData.url) {
+                                    __rightPanel.source = modelData.url
+                                }
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
-    Rectangle {
-        id:                     divider
-        anchors.topMargin:      _verticalMargin
-        anchors.bottomMargin:   _verticalMargin
-        anchors.leftMargin:     _horizontalMargin
-        anchors.left:           buttonList.right
-        anchors.top:            parent.top
-        anchors.bottom:         parent.bottom
-        width:                  1
-        color:                  qgcPal.windowShade
+        //-- Footer
+        Column {
+            id:                     sidebarFooter
+            anchors.bottom:         parent.bottom
+            anchors.bottomMargin:   _defaultTextHeight
+            anchors.left:           parent.left
+            anchors.leftMargin:     _defaultTextWidth * 1.5
+            spacing:                _defaultTextHeight / 4
+
+            QGCLabel {
+                text:               qsTr("Fly Higher With CDA")
+                color:              "white"
+                font.bold:          true
+                font.italic:        true
+            }
+            QGCLabel {
+                text:               qsTr("Better Pilots  \u2022  Safer Skies")
+                color:              _skyBlue
+                font.pointSize:     ScreenTools.smallFontPointSize
+            }
+        }
     }
 
     //-- Panel Contents
     Loader {
         id:                     __rightPanel
-        anchors.leftMargin:     _horizontalMargin
+        anchors.leftMargin:     _horizontalMargin * 2
         anchors.rightMargin:    _horizontalMargin
         anchors.topMargin:      _verticalMargin
         anchors.bottomMargin:   _verticalMargin
-        anchors.left:           divider.right
+        anchors.left:           sidebar.right
         anchors.right:          parent.right
         anchors.top:            parent.top
         anchors.bottom:         parent.bottom
     }
 }
-
