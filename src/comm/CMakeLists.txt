@@ -1,4 +1,4 @@
-find_package(Qt5 REQUIRED COMPONENTS Core SerialPort)
+find_package(Qt5 REQUIRED COMPONENTS Core SerialPort Bluetooth)
 
 set(EXTRA_SRC)
 if(BUILD_TESTING)
@@ -13,8 +13,8 @@ if(BUILD_TESTING)
 endif()
 
 add_library(comm
-	#BluetoothLink.cc
-	#BluetoothLink.h
+	BluetoothLink.cc
+	BluetoothLink.h
 	LinkConfiguration.cc
 	LinkConfiguration.h
 	LinkInterface.cc
@@ -47,6 +47,7 @@ target_link_libraries(comm
 	PRIVATE
 		qgc
 	PUBLIC
+		Qt5::Bluetooth
 		Qt5::Location
 		Qt5::SerialPort
 		Qt5::Test
