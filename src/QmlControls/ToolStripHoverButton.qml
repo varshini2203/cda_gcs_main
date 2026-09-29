@@ -36,7 +36,7 @@ Button {
     property real imageScale:       0.6
     property real contentMargins:   innerText.height * 0.1
 
-    property color _currentContentColor:  (checked || pressed) ? qgcPal.buttonHighlightText : qgcPal.buttonText
+    property color _currentContentColor:  control.enabled ? "white" : "#7f9cc9"
 
     signal dropped(int index)
 
@@ -91,8 +91,8 @@ Button {
     background: Rectangle {
         id:             buttonBkRect
         color:          (control.checked || control.pressed) ?
-                            qgcPal.buttonHighlight :
-                            (control.hovered ? qgcPal.toolStripHoverColor : qgcPal.toolbarBackground)
+                            "#2f80ed" :
+                            (control.hovered ? "#2a6fc0" : "transparent")
         anchors.fill:   parent
     }
 }

@@ -120,7 +120,7 @@ AnalyzePage {
             Column {
                 spacing:            _margin
                 Layout.alignment:   Qt.AlignTop | Qt.AlignLeft
-                QGCButton {
+                CDAButton {
                     enabled:    !logController.requestingList && !logController.downloadingLogs
                     text:       qsTr("Refresh")
                     width:      _butttonWidth
@@ -132,7 +132,7 @@ AnalyzePage {
                         }
                     }
                 }
-                QGCButton {
+                CDAButton {
                     enabled:    !logController.requestingList && !logController.downloadingLogs && tableView.selection.count > 0
                     text:       qsTr("Download")
                     width:      _butttonWidth
@@ -166,7 +166,7 @@ AnalyzePage {
                         }
                     }
                 }
-                QGCButton {
+                CDAButton {
                     enabled:    !logController.requestingList && !logController.downloadingLogs && logController.model.count > 0
                     text:       qsTr("Erase All")
                     width:      _butttonWidth
@@ -186,7 +186,7 @@ AnalyzePage {
                         }
                     }
                 }
-                QGCButton {
+                CDAButton {
                     text:       qsTr("Cancel")
                     width:      _butttonWidth
                     enabled:    logController.requestingList || logController.downloadingLogs

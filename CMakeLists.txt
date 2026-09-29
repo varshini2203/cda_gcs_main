@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(ChennaiDroneAcademy LANGUAGES C CXX)
+project(QGroundControl LANGUAGES C CXX)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo;MinSizeRel;Coverage")
 
@@ -183,6 +183,7 @@ set(QGC_RESOURCES
 	src/Airmap/airmap.qrc
 	src/Airmap/dummy/airmap_dummy.qrc
 	src/ui/Auth/Auth.qrc
+	src/ui/SettingsTheme/SettingsTheme.qrc
         )
 
 if(BUILD_TESTING)

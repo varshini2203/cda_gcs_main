@@ -64,7 +64,7 @@ AnalyzePage {
             }
             //-----------------------------------------------------------------
             //-- Log File
-            QGCButton {
+            CDAButton {
                 text:               qsTr("Select log file")
                 onClicked:          openLogFile.open()
                 Layout.minimumWidth:_minWidth
@@ -92,7 +92,7 @@ AnalyzePage {
             }
             //-----------------------------------------------------------------
             //-- Image Directory
-            QGCButton {
+            CDAButton {
                 text:               qsTr("Select image directory")
                 onClicked:          selectImageDir.open()
                 Layout.minimumWidth:_minWidth
@@ -119,7 +119,7 @@ AnalyzePage {
             }
             //-----------------------------------------------------------------
             //-- Save Directory
-            QGCButton {
+            CDAButton {
                 text:               qsTr("(Optionally) Select save directory")
                 onClicked:          selectDestDir.open()
                 Layout.minimumWidth:_minWidth
@@ -146,7 +146,7 @@ AnalyzePage {
             }
             //-----------------------------------------------------------------
             //-- Execute
-            QGCButton {
+            CDAButton {
                 text:               geoController.inProgress ? qsTr("Cancel Tagging") : qsTr("Start Tagging")
                 width:              ScreenTools.defaultFontPixelWidth * 30
                 enabled:            (geoController.imageDirectory !== "" && geoController.logFile !== "") || geoController.inProgress

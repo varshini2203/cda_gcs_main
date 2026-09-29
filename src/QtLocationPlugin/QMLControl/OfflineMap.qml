@@ -549,7 +549,7 @@ Item {
                     Row {
                         spacing:    ScreenTools.defaultFontPixelWidth
                         anchors.horizontalCenter: parent.horizontalCenter
-                        QGCButton {
+                        CDAButton {
                             text:       qsTr("Resume Download")
                             visible:    offlineMapView._currentSelection && offlineMapView._currentSelection && !_defaultSet && (!offlineMapView._currentSelection.complete && !offlineMapView._currentSelection.downloading)
                             width:      ScreenTools.defaultFontPixelWidth * 16
@@ -558,7 +558,7 @@ Item {
                                     offlineMapView._currentSelection.resumeDownloadTask()
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:       qsTr("Cancel Download")
                             visible:    offlineMapView._currentSelection && offlineMapView._currentSelection && !_defaultSet && (!offlineMapView._currentSelection.complete && offlineMapView._currentSelection.downloading)
                             width:      ScreenTools.defaultFontPixelWidth * 16
@@ -567,12 +567,12 @@ Item {
                                     offlineMapView._currentSelection.cancelDownloadTask()
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:       qsTr("Delete")
                             width:      ScreenTools.defaultFontPixelWidth * (infoView._extraButton ? 6 : 10)
                             onClicked:  mainWindow.showComponentDialog(deleteConfirmationDialogComponent, qsTr("Confirm Delete"), mainWindow.showDialogDefaultWidth, StandardButton.Yes | StandardButton.No)
                         }
-                        QGCButton {
+                        CDAButton {
                             text:       qsTr("Ok")
                             width:      ScreenTools.defaultFontPixelWidth * (infoView._extraButton ? 6 : 10)
                             visible:    !_defaultSet
@@ -585,7 +585,7 @@ Item {
                                 showList()
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:       _defaultSet ? qsTr("Close") : qsTr("Cancel")
                             width:      ScreenTools.defaultFontPixelWidth * (infoView._extraButton ? 6 : 10)
                             onClicked: {
@@ -610,7 +610,7 @@ Item {
                     anchors.left:           parent.left
                     spacing:                _margins
 
-                    QGCButton {
+                    CDAButton {
                         text:       "Show zoom previews"
                         visible:    !_showPreview
                         onClicked:  _showPreview = !_showPreview
@@ -949,7 +949,7 @@ Item {
                         id: addButtonRow
                         spacing: ScreenTools.defaultFontPixelWidth
                         anchors.horizontalCenter: parent.horizontalCenter
-                        QGCButton {
+                        CDAButton {
                             text:       qsTr("Download")
                             width:      (addNewSetColumn.width * 0.5) - (addButtonRow.spacing * 0.5)
                             enabled:    !_tooManyTiles && setName.text.length > 0
@@ -962,7 +962,7 @@ Item {
                                 }
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:       qsTr("Cancel")
                             width:      (addNewSetColumn.width * 0.5) - (addButtonRow.spacing * 0.5)
                             onClicked: {
@@ -1032,7 +1032,7 @@ Item {
             anchors.bottom:     parent.bottom
             anchors.margins:    ScreenTools.defaultFontPixelWidth
             anchors.horizontalCenter: parent.horizontalCenter
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Import")
                 width:          _buttonSize
                 visible:        QGroundControl.corePlugin.options.showOfflineMapImport
@@ -1041,13 +1041,13 @@ Item {
                     importDialog.open()
                 }
             }
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Export")
                 width:          _buttonSize
                 visible:        QGroundControl.corePlugin.options.showOfflineMapExport
                 onClicked:      showExport()
             }
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Options")
                 width:          _buttonSize
                 onClicked:      mainWindow.showComponentDialog(optionsDialogComponent, qsTr("Offline Maps Options"), mainWindow.showDialogDefaultWidth, StandardButton.Save | StandardButton.Cancel)
@@ -1099,17 +1099,17 @@ Item {
             anchors.bottom:     parent.bottom
             anchors.margins:    ScreenTools.defaultFontPixelWidth
             anchors.horizontalCenter: parent.horizontalCenter
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Select All")
                 width:          _bigButtonSize
                 onClicked:      QGroundControl.mapEngineManager.selectAll()
             }
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Select None")
                 width:          _bigButtonSize
                 onClicked:      QGroundControl.mapEngineManager.selectNone()
             }
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Export")
                 width:          _bigButtonSize
                 enabled:        QGroundControl.mapEngineManager.selectedCount > 0
@@ -1119,7 +1119,7 @@ Item {
                     fileDialog.openForSave()
                 }
             }
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Cancel")
                 width:          _bigButtonSize
                 onClicked:       showList()
@@ -1168,7 +1168,7 @@ Item {
                 height:         exportCloseButton.height
                 anchors.horizontalCenter: parent.horizontalCenter
             }
-            QGCButton {
+            CDAButton {
                 id:             exportCloseButton
                 text:           qsTr("Close")
                 width:          _buttonSize
@@ -1249,7 +1249,7 @@ Item {
                     visible:        QGroundControl.mapEngineManager.importAction === QGCMapEngineManager.ActionNone
                 }
             }
-            QGCButton {
+            CDAButton {
                 text:           qsTr("Close")
                 width:          _bigButtonSize * 1.25
                 visible:        QGroundControl.mapEngineManager.importAction === QGCMapEngineManager.ActionDone
@@ -1263,7 +1263,7 @@ Item {
                 spacing:            _margins
                 visible:            QGroundControl.mapEngineManager.importAction === QGCMapEngineManager.ActionNone
                 anchors.horizontalCenter: parent.horizontalCenter
-                QGCButton {
+                CDAButton {
                     text:           qsTr("Import")
                     width:          _bigButtonSize * 1.25
                     onClicked: {
@@ -1273,7 +1273,7 @@ Item {
                         fileDialog.openForLoad()
                     }
                 }
-                QGCButton {
+                CDAButton {
                     text:           qsTr("Cancel")
                     width:          _bigButtonSize * 1.25
                     onClicked: {

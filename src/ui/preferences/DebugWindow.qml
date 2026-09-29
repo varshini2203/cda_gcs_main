@@ -22,6 +22,15 @@ import QGroundControl.ScreenTools 1.0
 
 Item {
 
+    Rectangle {
+        anchors.fill:       parent
+        anchors.margins:    ScreenTools.defaultFontPixelWidth
+        radius:             ScreenTools.defaultFontPixelWidth * 1.4
+        color:              "white"
+        border.width:       1
+        border.color:       "#d3e1f2"
+    }
+
     Text {
         id:             _textMeasure
         text:           "X"
@@ -30,7 +39,7 @@ Item {
     }
 
     GridLayout {
-        anchors.margins: 20
+        anchors.margins: 34
         anchors.top:     parent.top
         anchors.left:    parent.left
         columns: 3
@@ -283,7 +292,8 @@ Item {
         color:              qgcPal.text
         anchors.right:      parent.right
         anchors.bottom:     parent.bottom
-        anchors.margins:    10
+        anchors.margins:    30
+        radius:             6
         Text {
             text: "100x100"
             anchors.centerIn: parent
@@ -310,7 +320,7 @@ Item {
         spacing:            0
         anchors.right:      square.left
         anchors.bottom:     parent.bottom
-        anchors.margins:    10
+        anchors.margins:    30
         Repeater {
             model: colorListModel
             delegate: Rectangle {

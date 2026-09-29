@@ -17,10 +17,14 @@ import QGroundControl.Controls      1.0
 
 Rectangle {
     id:         _root
-    color:      qgcPal.toolbarBackground
+    color:      "#0b2f66"
+    gradient: Gradient {
+        GradientStop { position: 0.0; color: "#0b2f66" }
+        GradientStop { position: 1.0; color: "#1565c0" }
+    }
     width:      _idealWidth < repeater.contentWidth ? repeater.contentWidth : _idealWidth
     height:     Math.min(maxHeight, toolStripColumn.height + (flickable.anchors.margins * 2))
-    radius:     ScreenTools.defaultFontPixelWidth / 2
+    radius:     ScreenTools.defaultFontPixelWidth * 1.0
 
     property alias  model:              repeater.model
     property real   maxHeight           ///< Maximum height for control, determines whether text is hidden to make control shorter
@@ -65,6 +69,8 @@ Rectangle {
                 anchors.right:          parent.right
                 horizontalAlignment:    Text.AlignHCenter
                 font.pointSize:         ScreenTools.smallFontPointSize
+                color:                  "white"
+                font.bold:              true
                 visible:                title != ""
             }
 
@@ -76,7 +82,7 @@ Rectangle {
                     anchors.left:       toolStripColumn.left
                     anchors.right:      toolStripColumn.right
                     height:             width
-                    radius:             ScreenTools.defaultFontPixelWidth / 2
+                    radius:             ScreenTools.defaultFontPixelWidth * 0.8
                     fontPointSize:      ScreenTools.smallFontPointSize
                     toolStripAction:    modelData
                     dropPanel:          _dropPanel

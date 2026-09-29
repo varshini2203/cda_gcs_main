@@ -124,8 +124,9 @@ T.ComboBox {
     background: Rectangle {
         implicitWidth:  ScreenTools.implicitComboBoxWidth
         implicitHeight: ScreenTools.implicitComboBoxHeight
-        color:          _qgcPal.window
-        border.color:   _qgcPal.text
+        radius:         4
+        color:          _qgcPal.globalTheme === QGCPalette.Light ? "white" : _qgcPal.window
+        border.color:   _qgcPal.globalTheme === QGCPalette.Light ? "#b7cbe6" : _qgcPal.text
     }
 
     popup: T.Popup {

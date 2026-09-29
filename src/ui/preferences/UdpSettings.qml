@@ -78,7 +78,7 @@ Column {
                 Repeater {
                     model: subEditConfig && subEditConfig.linkType === LinkConfiguration.TypeUdp ? subEditConfig.hostList : ""
                     delegate:
-                    QGCButton {
+                    CDAButton {
                         text:               modelData
                         width:              _secondColumn
                         anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 2
@@ -126,7 +126,7 @@ Column {
                         id:         udpButtonRow
                         spacing:    ScreenTools.defaultFontPixelWidth
                         anchors.horizontalCenter: parent.horizontalCenter
-                        QGCButton {
+                        CDAButton {
                             width:      ScreenTools.defaultFontPixelWidth * 10
                             text:       qsTr("Add")
                             onClicked: {
@@ -138,7 +138,7 @@ Column {
                                     hostField.visible = true
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             width:      ScreenTools.defaultFontPixelWidth * 10
                             enabled:    _udpSetting._currentHost && _udpSetting._currentHost !== ""
                             text:       qsTr("Remove")

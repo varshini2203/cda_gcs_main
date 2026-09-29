@@ -62,13 +62,15 @@ TextField {
             Rectangle {
                 anchors.fill:           parent
                 anchors.bottomMargin:   -1
+                radius:                 ScreenTools.defaultFontPixelWidth * 0.5
                 color:                  "#44ffffff"
             }
 
             Rectangle {
                 anchors.fill:           parent
                 border.width:           enabled ? 1 : 0
-                border.color:           root.activeFocus ? "#47b" : "#999"
+                radius:                 ScreenTools.defaultFontPixelWidth * 0.5
+                border.color:           root.activeFocus ? "#1e6fd0" : (qgcPal.globalTheme === QGCPalette.Light ? "#b7cbe6" : "#999")
                 color:                  qgcPal.textField
             }
 

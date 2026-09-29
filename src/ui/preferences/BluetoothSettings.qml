@@ -77,7 +77,7 @@ Column {
                 Repeater {
                     model: subEditConfig && subEditConfig.linkType === LinkConfiguration.TypeBluetooth ? subEditConfig.nameList : ""
                     delegate:
-                    QGCButton {
+                    CDAButton {
                         text:               modelData
                         width:              _secondColumn
                         anchors.leftMargin: ScreenTools.defaultFontPixelWidth * 2
@@ -105,7 +105,7 @@ Column {
                         id:         udpButtonRow
                         spacing:    ScreenTools.defaultFontPixelWidth
                         anchors.horizontalCenter: parent.horizontalCenter
-                        QGCButton {
+                        CDAButton {
                             width:      ScreenTools.defaultFontPixelWidth * 10
                             text:       qsTr("Scan")
                             enabled:    subEditConfig && subEditConfig.linkType === LinkConfiguration.TypeBluetooth && !subEditConfig.scanning
@@ -114,7 +114,7 @@ Column {
                                     subEditConfig.startScan()
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             width:      ScreenTools.defaultFontPixelWidth * 10
                             text:       qsTr("Stop")
                             enabled:    subEditConfig && subEditConfig.linkType === LinkConfiguration.TypeBluetooth && subEditConfig.scanning

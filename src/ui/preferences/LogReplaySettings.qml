@@ -38,7 +38,7 @@ Column {
             width:      _secondColumn
             anchors.verticalCenter: parent.verticalCenter
         }
-        QGCButton {
+        CDAButton {
             text:       qsTr("Browse")
             onClicked: {
                 fileDialog.visible = true

@@ -24,7 +24,7 @@ import QGroundControl.Palette               1.0
 
 Rectangle {
     id:             __mavlinkRoot
-    color:          qgcPal.window
+    color:          "transparent"
     anchors.fill:   parent
 
     property real _labelWidth:          ScreenTools.defaultFontPixelWidth * 28
@@ -106,13 +106,19 @@ Rectangle {
                 QGCLabel {
                     id:             gcsLabel
                     text:           qsTr("Ground Station")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:    true
+                    color:    "#1e6fd0"
+                    font.pointSize: ScreenTools.mediumFontPointSize
                 }
             }
             Rectangle {
                 height:         gcsColumn.height + (ScreenTools.defaultFontPixelHeight * 2)
                 width:          __mavlinkRoot.width * 0.8
-                color:          qgcPal.windowShade
+                color:          "white"
+                radius: ScreenTools.defaultFontPixelWidth * 1.2
+                border.width: 1
+                border.color: "#d3e1f2"
+                Rectangle { z: -1; y: 3; width: parent.width; height: parent.height; radius: parent.radius; color: "#140b2f66" }
                 anchors.margins: ScreenTools.defaultFontPixelWidth
                 anchors.horizontalCenter: parent.horizontalCenter
                 Column {
@@ -197,13 +203,19 @@ Rectangle {
                 QGCLabel {
                     id:             streamRatesLabel
                     text:           qsTr("Telemetry Stream Rates (ArduPilot Only)")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:    true
+                    color:    "#1e6fd0"
+                    font.pointSize: ScreenTools.mediumFontPointSize
                 }
             }
             Rectangle {
                 height:                     streamRatesColumn.height + (ScreenTools.defaultFontPixelHeight * 2)
                 width:                      __mavlinkRoot.width * 0.8
-                color:                      qgcPal.windowShade
+                color:                      "white"
+                radius: ScreenTools.defaultFontPixelWidth * 1.2
+                border.width: 1
+                border.color: "#d3e1f2"
+                Rectangle { z: -1; y: 3; width: parent.width; height: parent.height; radius: parent.radius; color: "#140b2f66" }
                 anchors.margins:            ScreenTools.defaultFontPixelWidth
                 anchors.horizontalCenter:   parent.horizontalCenter
                 visible:                    _showAPMStreamRates
@@ -286,13 +298,19 @@ Rectangle {
                 QGCLabel {
                     id:             mavStatusLabel
                     text:           qsTr("MAVLink Link Status (Current Vehicle)")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:    true
+                    color:    "#1e6fd0"
+                    font.pointSize: ScreenTools.mediumFontPointSize
                 }
             }
             Rectangle {
                 height:         mavStatusColumn.height + (ScreenTools.defaultFontPixelHeight * 2)
                 width:          __mavlinkRoot.width * 0.8
-                color:          qgcPal.windowShade
+                color:          "white"
+                radius: ScreenTools.defaultFontPixelWidth * 1.2
+                border.width: 1
+                border.color: "#d3e1f2"
+                Rectangle { z: -1; y: 3; width: parent.width; height: parent.height; radius: parent.radius; color: "#140b2f66" }
                 anchors.margins: ScreenTools.defaultFontPixelWidth
                 anchors.horizontalCenter: parent.horizontalCenter
                 Column {
@@ -373,13 +391,19 @@ Rectangle {
                 QGCLabel {
                     id:             mavlogLabel
                     text:           qsTr("MAVLink 2.0 Logging (PX4 Pro Only)")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:    true
+                    color:    "#1e6fd0"
+                    font.pointSize: ScreenTools.mediumFontPointSize
                 }
             }
             Rectangle {
                 height:         mavlogColumn.height + (ScreenTools.defaultFontPixelHeight * 2)
                 width:          __mavlinkRoot.width * 0.8
-                color:          qgcPal.windowShade
+                color:          "white"
+                radius: ScreenTools.defaultFontPixelWidth * 1.2
+                border.width: 1
+                border.color: "#d3e1f2"
+                Rectangle { z: -1; y: 3; width: parent.width; height: parent.height; radius: parent.radius; color: "#140b2f66" }
                 anchors.margins: ScreenTools.defaultFontPixelWidth
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible:        _showMavlinkLog
@@ -398,14 +422,14 @@ Rectangle {
                             text:               qsTr("Manual Start/Stop:")
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        QGCButton {
+                        CDAButton {
                             text:               qsTr("Start Logging")
                             width:              (_valueWidth * 0.5) - (ScreenTools.defaultFontPixelWidth * 0.5)
                             enabled:            !QGroundControl.mavlinkLogManager.logRunning && QGroundControl.mavlinkLogManager.canStartLog && !_disableDataPersistence
                             onClicked:          QGroundControl.mavlinkLogManager.startLogging()
                             anchors.verticalCenter: parent.verticalCenter
                         }
-                        QGCButton {
+                        CDAButton {
                             text:               qsTr("Stop Logging")
                             width:              (_valueWidth * 0.5) - (ScreenTools.defaultFontPixelWidth * 0.5)
                             enabled:            QGroundControl.mavlinkLogManager.logRunning && !_disableDataPersistence
@@ -436,13 +460,19 @@ Rectangle {
                 QGCLabel {
                     id:             logLabel
                     text:           qsTr("MAVLink 2.0 Log Uploads (PX4 Pro Only)")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:    true
+                    color:    "#1e6fd0"
+                    font.pointSize: ScreenTools.mediumFontPointSize
                 }
             }
             Rectangle {
                 height:         logColumn.height + (ScreenTools.defaultFontPixelHeight * 2)
                 width:          __mavlinkRoot.width * 0.8
-                color:          qgcPal.windowShade
+                color:          "white"
+                radius: ScreenTools.defaultFontPixelWidth * 1.2
+                border.width: 1
+                border.color: "#d3e1f2"
+                Rectangle { z: -1; y: 3; width: parent.width; height: parent.height; radius: parent.radius; color: "#140b2f66" }
                 anchors.margins: ScreenTools.defaultFontPixelWidth
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible:        _showMavlinkLog
@@ -675,13 +705,19 @@ Rectangle {
                 QGCLabel {
                     id:             logFilesLabel
                     text:           qsTr("Saved Log Files")
-                    font.family:    ScreenTools.demiboldFontFamily
+                    font.bold:    true
+                    color:    "#1e6fd0"
+                    font.pointSize: ScreenTools.mediumFontPointSize
                 }
             }
             Rectangle {
                 height:         logFilesColumn.height + (ScreenTools.defaultFontPixelHeight * 2)
                 width:          __mavlinkRoot.width * 0.8
-                color:          qgcPal.windowShade
+                color:          "white"
+                radius: ScreenTools.defaultFontPixelWidth * 1.2
+                border.width: 1
+                border.color: "#d3e1f2"
+                Rectangle { z: -1; y: 3; width: parent.width; height: parent.height; radius: parent.radius; color: "#140b2f66" }
                 anchors.margins: ScreenTools.defaultFontPixelWidth
                 anchors.horizontalCenter: parent.horizontalCenter
                 visible:        _showMavlinkLog
@@ -759,7 +795,7 @@ Rectangle {
                     Row {
                         spacing:    ScreenTools.defaultFontPixelWidth
                         anchors.horizontalCenter: parent.horizontalCenter
-                        QGCButton {
+                        CDAButton {
                             text:      qsTr("Check All")
                             enabled:    !QGroundControl.mavlinkLogManager.uploading && !QGroundControl.mavlinkLogManager.logRunning
                             onClicked: {
@@ -769,7 +805,7 @@ Rectangle {
                                 }
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:      qsTr("Check None")
                             enabled:    !QGroundControl.mavlinkLogManager.uploading && !QGroundControl.mavlinkLogManager.logRunning
                             onClicked: {
@@ -779,7 +815,7 @@ Rectangle {
                                 }
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:      qsTr("Delete Selected")
                             enabled:    _selectedCount > 0 && !QGroundControl.mavlinkLogManager.uploading && !QGroundControl.mavlinkLogManager.logRunning
                             onClicked:  deleteDialog.open()
@@ -795,7 +831,7 @@ Rectangle {
                                 }
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:      qsTr("Upload Selected")
                             enabled:    _selectedCount > 0 && !QGroundControl.mavlinkLogManager.uploading && !QGroundControl.mavlinkLogManager.logRunning && !_uploadedSelected
                             visible:    !QGroundControl.mavlinkLogManager.uploading
@@ -818,7 +854,7 @@ Rectangle {
                                 }
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             text:      qsTr("Cancel")
                             enabled:    QGroundControl.mavlinkLogManager.uploading && !QGroundControl.mavlinkLogManager.logRunning
                             visible:    QGroundControl.mavlinkLogManager.uploading

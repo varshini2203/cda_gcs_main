@@ -285,7 +285,7 @@ AnalyzePage {
                     onAccepted: sendCommand()
                 }
 
-                QGCButton {
+                CDAButton {
                     id:        sendButton
                     text:      qsTr("Send")
                     onClicked: commandInput.sendCommand()

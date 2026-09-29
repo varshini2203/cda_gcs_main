@@ -21,6 +21,8 @@ import QGroundControl.Controllers   1.0
 import QGroundControl.ScreenTools   1.0
 
 AnalyzePage {
+    pageName:           qsTr("MAVLink Inspector")
+    pageDescription:    qsTr("Inspect real time MAVLink messages.")
     headerComponent:    headerComponent
     pageComponent:      pageComponent
 
@@ -40,9 +42,7 @@ AnalyzePage {
             id:                 header
             anchors.left:       parent.left
             anchors.right:      parent.right
-            QGCLabel {
-                text:           qsTr("Inspect real time MAVLink messages.")
-            }
+            Item { Layout.fillWidth: true }
             RowLayout {
                 Layout.alignment:   Qt.AlignRight
                 visible:            curSystem ? controller.systemNames.length > 1 || curSystem.compIDsStr.length > 2 : false

@@ -1,0 +1,29 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file alias="SettingsIcons/general.svg">icons/general.svg</file>
+        <file alias="SettingsIcons/link.svg">icons/link.svg</file>
+        <file alias="SettingsIcons/map.svg">icons/map.svg</file>
+        <file alias="SettingsIcons/terminal.svg">icons/terminal.svg</file>
+        <file alias="SettingsIcons/help.svg">icons/help.svg</file>
+        <file alias="SettingsIcons/bug.svg">icons/bug.svg</file>
+        <file alias="SettingsIcons/clipboard.svg">icons/clipboard.svg</file>
+        <file alias="SettingsIcons/eye.svg">icons/eye.svg</file>
+        <file alias="SettingsIcons/pin.svg">icons/pin.svg</file>
+        <file alias="SettingsIcons/ruler.svg">icons/ruler.svg</file>
+        <file alias="SettingsIcons/sliders.svg">icons/sliders.svg</file>
+        <file alias="SettingsIcons/video.svg">icons/video.svg</file>
+        <file alias="SettingsIcons/file.svg">icons/file.svg</file>
+        <file alias="SettingsIcons/zap.svg">icons/zap.svg</file>
+        <file alias="SettingsIcons/radio.svg">icons/radio.svg</file>
+        <file alias="SettingsIcons/plane.svg">icons/plane.svg</file>
+        <file alias="SettingsIcons/image.svg">icons/image.svg</file>
+        <file alias="SettingsIcons/harrows.svg">icons/harrows.svg</file>
+        <file alias="SettingsIcons/varrows.svg">icons/varrows.svg</file>
+        <file alias="SettingsIcons/area.svg">icons/area.svg</file>
+        <file alias="SettingsIcons/gauge.svg">icons/gauge.svg</file>
+        <file alias="SettingsIcons/thermo.svg">icons/thermo.svg</file>
+        <file alias="SettingsIcons/home.svg">icons/home.svg</file>
+        <file alias="QGroundControl/Controls/CDAButton.qml">CDAButton.qml</file>
+        <file alias="QGroundControl/Controls/CDASectionCard.qml">CDASectionCard.qml</file>
+    </qresource>
+</RCC>

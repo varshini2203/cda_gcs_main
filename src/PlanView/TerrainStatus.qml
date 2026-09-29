@@ -17,9 +17,15 @@ import QGroundControl.Palette       1.0
 
 Rectangle {
     id:         root
-    radius:     ScreenTools.defaultFontPixelWidth * 0.5
-    color:      qgcPal.window
-    opacity:    0.80
+    radius:     ScreenTools.defaultFontPixelWidth * 1.0
+    color:      "#0b2f66"
+    opacity:    0.92
+    border.width: 1
+    border.color: "#1e6fd0"
+    gradient: Gradient {
+        GradientStop { position: 0.0; color: "#0b2f66" }
+        GradientStop { position: 1.0; color: "#1565c0" }
+    }
     clip:       true
 
     property var missionController
@@ -42,6 +48,7 @@ Rectangle {
         anchors.top:            parent.bottom
         width:                  parent.height
         font.pointSize:         ScreenTools.smallFontPointSize
+        color:                  "white"
         text:                   qsTr("Height AMSL (%1)").arg(_unitsConversion.appSettingsHorizontalDistanceUnitsString)
         horizontalAlignment:    Text.AlignHCenter
         rotation:               -90

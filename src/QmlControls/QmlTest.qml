@@ -12,6 +12,9 @@ Rectangle {
     anchors.fill:       parent
     anchors.margins:    ScreenTools.defaultFontPixelWidth
     color:              "white"
+    radius:             ScreenTools.defaultFontPixelWidth * 1.4
+    border.width:       1
+    border.color:       "#d3e1f2"
 
     property var palette:           QGCPalette { colorGroupEnabled: true }
     property var enabledPalette:    QGCPalette { colorGroupEnabled: true }
@@ -194,7 +197,7 @@ Rectangle {
             Row {
                 spacing:    ScreenTools.defaultFontPixelWidth  * 2
                 anchors.horizontalCenter: parent.horizontalCenter
-                QGCButton {
+                CDAButton {
                     id:         importButton
                     text:       "Import (Json Only)"
                     enabled:    themeImportExportEdit.text[0] === "{" && _jsonButton.checked
@@ -202,7 +205,7 @@ Rectangle {
                         importTheme(themeImportExportEdit.text);
                     }
                 }
-                QGCButton {
+                CDAButton {
                     text:       "Close"
                     onClicked: {
                         paletteImportExportPopup.close()
@@ -228,7 +231,7 @@ Rectangle {
                 text:   qsTr("Window Color")
                 anchors.verticalCenter: parent.verticalCenter
             }
-            QGCButton {
+            CDAButton {
                 text:   qsTr("Import/Export")
                 anchors.verticalCenter: parent.verticalCenter
                 onClicked: paletteImportExportPopup.open()
@@ -427,35 +430,35 @@ Rectangle {
                             }
                         }
 
-                        // QGCButton
+                        // CDAButton
                         Loader {
                             sourceComponent: ctlRowHeader
-                            property string text: "QGCButton"
+                            property string text: "CDAButton"
                         }
-                        QGCButton {
+                        CDAButton {
                             width: ctlPrevColumn._colWidth
                             height: ctlPrevColumn._height
                             text: qsTr("Button")
                         }
-                        QGCButton {
+                        CDAButton {
                             width: ctlPrevColumn._colWidth
                             height: ctlPrevColumn._height
                             text: qsTr("Button")
                             enabled: false
                         }
 
-                        // QGCButton - primary
+                        // CDAButton - primary
                         Loader {
                             sourceComponent: ctlRowHeader
-                            property string text: "QGCButton(primary)"
+                            property string text: "CDAButton(primary)"
                         }
-                        QGCButton {
+                        CDAButton {
                             width: ctlPrevColumn._colWidth
                             height: ctlPrevColumn._height
                             primary: true
                             text: qsTr("Button")
                         }
-                        QGCButton {
+                        CDAButton {
                             width:  ctlPrevColumn._colWidth
                             height: ctlPrevColumn._height
                             text:   qsTr("Button")
@@ -484,10 +487,10 @@ Rectangle {
                             enabled: false
                         }
 
-                        // QGCButton - menu
+                        // CDAButton - menu
                         Loader {
                             sourceComponent: ctlRowHeader
-                            property string text: "QGCButton(menu)"
+                            property string text: "CDAButton(menu)"
                         }
                         Menu {
                             id: buttonMenu
@@ -501,13 +504,13 @@ Rectangle {
                                 text: qsTr("Item 3")
                             }
                         }
-                        QGCButton {
+                        CDAButton {
                             width: ctlPrevColumn._colWidth
                             height: ctlPrevColumn._height
                             text: qsTr("Button")
                             onClicked: buttonMenu.popup()
                         }
-                        QGCButton {
+                        CDAButton {
                             width: ctlPrevColumn._colWidth
                             height: ctlPrevColumn._height
                             text: qsTr("Button")

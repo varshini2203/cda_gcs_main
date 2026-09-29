@@ -18,7 +18,7 @@ import QGroundControl.Palette       1.0
 import QGroundControl.ScreenTools   1.0
 
 Rectangle {
-    color:          qgcPal.window
+    color:          "transparent"
     anchors.fill:   parent
 
     readonly property real _margins: ScreenTools.defaultFontPixelHeight
@@ -26,60 +26,80 @@ Rectangle {
     QGCPalette { id: qgcPal; colorGroupEnabled: true }
 
     QGCFlickable {
-        anchors.fill:   parent
-        contentWidth:   column.width  + (_margins * 2)
-        contentHeight:  column.height + (_margins * 2)
-        clip:           true
+        anchors.fill:       parent
+        anchors.margins:    _margins
+        contentWidth:       width
+        contentHeight:      mockCard.height + (_margins * 2)
+        clip:               true
 
-        ColumnLayout {
-            id:                 column
-            anchors.margins:    _margins
-            anchors.left:       parent.left
-            anchors.top:        parent.top
-            spacing:            ScreenTools.defaultFontPixelHeight
+        CDASectionCard {
+            id:             mockCard
+            width:          Math.min(parent.width, ScreenTools.defaultFontPixelWidth * 90)
+            anchors.horizontalCenter: parent.horizontalCenter
+            title:          qsTr("Mock Link")
+            subtitle:       qsTr("Start simulated vehicles for testing without hardware")
+            iconName:       "link"
+            collapsible:    false
 
-            QGCCheckBox {
-                id:             sendStatusText
-                text:           qsTr("Send status text + voice")
-            }
-            QGCButton {
-                text:               qsTr("PX4 Vehicle")
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.startPX4MockLink(sendStatusText.checked)
-            }
-            QGCButton {
-                text:               qsTr("APM ArduCopter Vehicle")
-                visible:            QGroundControl.hasAPMSupport
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.startAPMArduCopterMockLink(sendStatusText.checked)
-            }
-            QGCButton {
-                text:               qsTr("APM ArduPlane Vehicle")
-                visible:            QGroundControl.hasAPMSupport
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.startAPMArduPlaneMockLink(sendStatusText.checked)
-            }
-            QGCButton {
-                text:               qsTr("APM ArduSub Vehicle")
-                visible:            QGroundControl.hasAPMSupport
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.startAPMArduSubMockLink(sendStatusText.checked)
-            }
-            QGCButton {
-                text:               qsTr("APM ArduRover Vehicle")
-                visible:            QGroundControl.hasAPMSupport
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.startAPMArduRoverMockLink(sendStatusText.checked)
-            }
-            QGCButton {
-                text:               qsTr("Generic Vehicle")
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.startGenericMockLink(sendStatusText.checked)
-            }
-            QGCButton {
-                text:               qsTr("Stop One MockLink")
-                Layout.fillWidth:   true
-                onClicked:          QGroundControl.stopOneMockLink()
+            Column {
+                width:      parent.width
+                spacing:    _margins
+
+                QGCCheckBox {
+                    id:             sendStatusText
+                    text:           qsTr("Send status text + voice")
+                }
+
+                GridLayout {
+                    width:          parent.width
+                    columns:        2
+                    columnSpacing:  _margins
+                    rowSpacing:     _margins
+
+                    CDAButton {
+                        text:               qsTr("PX4 Vehicle")
+                        primary:            true
+                        Layout.fillWidth:   true
+                        onClicked:          QGroundControl.startPX4MockLink(sendStatusText.checked)
+                    }
+                    CDAButton {
+                        text:               qsTr("Generic Vehicle")
+                        primary:            true
+                        Layout.fillWidth:   true
+                        onClicked:          QGroundControl.startGenericMockLink(sendStatusText.checked)
+                    }
+                    CDAButton {
+                        text:               qsTr("APM ArduCopter Vehicle")
+                        visible:            QGroundControl.hasAPMSupport
+                        Layout.fillWidth:   true
+                        onClicked:          QGroundControl.startAPMArduCopterMockLink(sendStatusText.checked)
+                    }
+                    CDAButton {
+                        text:               qsTr("APM ArduPlane Vehicle")
+                        visible:            QGroundControl.hasAPMSupport
+                        Layout.fillWidth:   true
+                        onClicked:          QGroundControl.startAPMArduPlaneMockLink(sendStatusText.checked)
+                    }
+                    CDAButton {
+                        text:               qsTr("APM ArduSub Vehicle")
+                        visible:            QGroundControl.hasAPMSupport
+                        Layout.fillWidth:   true
+                        onClicked:          QGroundControl.startAPMArduSubMockLink(sendStatusText.checked)
+                    }
+                    CDAButton {
+                        text:               qsTr("APM ArduRover Vehicle")
+                        visible:            QGroundControl.hasAPMSupport
+                        Layout.fillWidth:   true
+                        onClicked:          QGroundControl.startAPMArduRoverMockLink(sendStatusText.checked)
+                    }
+                }
+
+                CDAButton {
+                    text:               qsTr("Stop One MockLink")
+                    danger:             true
+                    width:              parent.width
+                    onClicked:          QGroundControl.stopOneMockLink()
+                }
             }
         }
     }

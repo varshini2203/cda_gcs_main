@@ -729,8 +729,11 @@ Item {
             id:                 rightPanel
             height:             parent.height
             width:              _rightPanelWidth
-            color:              qgcPal.window
-            opacity:            layerTabBar.visible ? 0.2 : 0
+            color:              "#f3f7fc"
+            opacity:            layerTabBar.visible ? 0.94 : 0
+            radius:             ScreenTools.defaultFontPixelWidth * 1.2
+            border.width:       1
+            border.color:       "#d3e1f2"
             anchors.bottom:     parent.bottom
             anchors.right:      parent.right
             anchors.rightMargin: _toolsMargin
@@ -740,6 +743,8 @@ Item {
         Item {
             anchors.fill:           rightPanel
             anchors.topMargin:      _toolsMargin
+            anchors.leftMargin:     ScreenTools.defaultFontPixelWidth * 0.6
+            anchors.rightMargin:    ScreenTools.defaultFontPixelWidth * 0.6
             DeadMouseArea {
                 anchors.fill:   parent
             }
@@ -807,21 +812,51 @@ Item {
                 }
                 //-------------------------------------------------------
                 // Mission Controls (Expanded)
-                QGCTabBar {
+                Item {
                     id:         layerTabBar
                     width:      parent.width
+                    height:     ScreenTools.defaultFontPixelHeight * 2.4
                     visible:    (!planControlColapsed || !_airspaceEnabled) && QGroundControl.corePlugin.options.enablePlanViewSelector
-                    Component.onCompleted: currentIndex = 0
-                    QGCTabButton {
-                        text:       qsTr("Mission")
+
+                    property int currentIndex: 0
+
+                    Rectangle {
+                        anchors.fill:   parent
+                        radius:         height / 3
+                        color:          "#e3eefc"
+                        border.width:   1
+                        border.color:   "#d3e1f2"
                     }
-                    QGCTabButton {
-                        text:       qsTr("Fence")
-                        enabled:    _geoFenceController.supported
-                    }
-                    QGCTabButton {
-                        text:       qsTr("Rally")
-                        enabled:    _rallyPointController.supported
+                    Row {
+                        anchors.fill:       parent
+                        anchors.margins:    3
+                        spacing:            3
+                        Repeater {
+                            model: 3
+                            Rectangle {
+                                id:         tabItem
+                                width:      (layerTabBar.width - 12) / 3
+                                height:     parent.height
+                                radius:     height / 3
+                                property bool _selected:    layerTabBar.currentIndex === index
+                                property bool _tabEnabled:  index === 0 ? true : (index === 1 ? _geoFenceController.supported : _rallyPointController.supported)
+                                color:      _selected ? "#2f80ed" : (tabMouse.containsMouse && _tabEnabled ? "#cfe3fb" : "transparent")
+                                QGCLabel {
+                                    anchors.centerIn:   parent
+                                    text:               index === 0 ? qsTr("Mission") : (index === 1 ? qsTr("Fence") : qsTr("Rally"))
+                                    color:              tabItem._selected ? "white" : (tabItem._tabEnabled ? "#0b2f66" : "#9aa8bb")
+                                    font.bold:          tabItem._selected
+                                }
+                                MouseArea {
+                                    id:             tabMouse
+                                    anchors.fill:   parent
+                                    hoverEnabled:   true
+                                    enabled:        tabItem._tabEnabled
+                                    cursorShape:    Qt.PointingHandCursor
+                                    onClicked:      layerTabBar.currentIndex = index
+                                }
+                            }
+                        }
                     }
                 }
             }

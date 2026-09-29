@@ -34,7 +34,15 @@ Item {
             id:              logwindow
             anchors.fill:    parent
             anchors.margins: ScreenTools.defaultFontPixelWidth
-            color:           qgcPal.window
+            color:           "white"
+            radius:          ScreenTools.defaultFontPixelWidth * 1.4
+            border.width:    1
+            border.color:    "#d3e1f2"
+
+            Item {
+                id:              logInner
+                anchors.fill:    parent
+                anchors.margins: ScreenTools.defaultFontPixelWidth
 
             Connections {
                 target: debugMessageModel
@@ -52,7 +60,7 @@ Item {
             Component {
                 id: delegateItem
                 Rectangle {
-                    color:  index % 2 == 0 ? qgcPal.window : qgcPal.windowShade
+                    color:  index % 2 == 0 ? "white" : "#f3f8ff"
                     height: Math.round(ScreenTools.defaultFontPixelHeight * 0.5 + field.height)
                     width:  listview.width
 
@@ -99,7 +107,7 @@ Item {
                 onWriteFinished: writeButton.enabled = true;
             }
 
-            QGCButton {
+            CDAButton {
                 id:              writeButton
                 anchors.bottom:  parent.bottom
                 anchors.left:    parent.left
@@ -126,7 +134,7 @@ Item {
                 sizeToContents:     true
             }
 
-            QGCButton {
+            CDAButton {
                 id:                     followTail
                 anchors.right:          filterButton.left
                 anchors.rightMargin:    ScreenTools.defaultFontPixelWidth
@@ -134,6 +142,7 @@ Item {
                 text:                   qsTr("Show Latest")
                 checkable:              true
                 checked:                true
+                primary:                true
 
                 onCheckedChanged: {
                     if (checked && loaded) {
@@ -142,12 +151,14 @@ Item {
                 }
             }
 
-            QGCButton {
+            CDAButton {
                 id:             filterButton
                 anchors.bottom: parent.bottom
                 anchors.right:  parent.right
                 text:           qsTr("Set Logging")
+                primary:        true
                 onClicked:      mainWindow.showPopupDialogFromComponent(filtersDialogComponent)
+            }
             }
         }
     }
@@ -177,7 +188,7 @@ Item {
                         enabled: true
                     }
 
-                    QGCButton {
+                    CDAButton {
                         text: qsTr("Clear")
                         onClicked: searchText.text = ""
                     }
@@ -185,7 +196,7 @@ Item {
 
                 Row {
                     spacing:    ScreenTools.defaultFontPixelHeight / 2
-                    QGCButton {
+                    CDAButton {
                         text: qsTr("Clear All")
                         onClicked: categoryRepeater.setAllLogs(false)
                     }
