@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 
-project(QGroundControl LANGUAGES C CXX)
+project(ChennaiDroneAcademy LANGUAGES C CXX)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug;Release;RelWithDebInfo;MinSizeRel;Coverage")
 
@@ -106,7 +106,6 @@ endif()
 
 add_definitions(
     -DQGC_ENABLE_MAVLINK_INSPECTOR
-    -DQGC_ENABLE_BLUETOOTH
 )
 
 #=============================================================================
@@ -222,5 +221,10 @@ if(NOT QT_MKSPEC MATCHES "winrt")
 		        Qt5::SerialPort
 		)
 endif()
+
+# QGCDeploy.cmake refers to the build target through the project name,
+# and the target is still called QGroundControl.
+set(PROJECT_NAME QGroundControl)
+set(CMAKE_PROJECT_NAME QGroundControl)
 
 include(QGCDeploy)
