@@ -106,6 +106,7 @@ endif()
 
 add_definitions(
     -DQGC_ENABLE_MAVLINK_INSPECTOR
+    -DQGC_ENABLE_BLUETOOTH
 )
 
 # Bluetooth: LinkConfiguration.h only declares TypeBluetooth, and
