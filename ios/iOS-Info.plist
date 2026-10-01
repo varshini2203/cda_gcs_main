@@ -5,7 +5,7 @@
 	<key>NSCameraUsageDescription</key>
 	<string>QGC uses UVC devices for video streaming.</string>
 	<key>CFBundleDisplayName</key>
-	<string>QGroundControl</string>
+	<string>CDA GCS</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>NSHumanReadableCopyright</key>

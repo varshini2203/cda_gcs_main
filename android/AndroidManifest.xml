@@ -1,8 +1,8 @@
 <?xml version='1.0'?>
 <manifest android:installLocation="auto" android:versionCode="300243" android:versionName="3.0.0-243-gd759437" package="org.mavlink.qgroundcontrol" xmlns:android="http://schemas.android.com/apk/res/android">
     <!--%%INSERT_FEATURES-->
-    <application android:hardwareAccelerated="true" android:icon="@drawable/icon" android:label="-- %%INSERT_APP_NAME%% --" android:name="org.qtproject.qt5.android.bindings.QtApplication">
-        <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation" android:keepScreenOn="true" android:label="-- %%INSERT_APP_NAME%% --" android:launchMode="singleTask" android:name="org.mavlink.qgroundcontrol.QGCActivity" android:screenOrientation="sensorLandscape">
+    <application android:hardwareAccelerated="true" android:icon="@drawable/icon" android:label="CDA GCS" android:name="org.qtproject.qt5.android.bindings.QtApplication">
+        <activity android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation" android:keepScreenOn="true" android:label="CDA GCS" android:launchMode="singleTask" android:name="org.mavlink.qgroundcontrol.QGCActivity" android:screenOrientation="sensorLandscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
