@@ -62,3 +62,10 @@ target_include_directories(comm
 	INTERFACE
 		${CMAKE_CURRENT_SOURCE_DIR}
 )
+
+# Fix: 'TypeBluetooth' is not a member of 'LinkConfiguration'
+# LinkConfiguration.h only declares TypeBluetooth when QGC_ENABLE_BLUETOOTH is defined.
+target_compile_definitions(comm
+	PUBLIC
+		QGC_ENABLE_BLUETOOTH
+)

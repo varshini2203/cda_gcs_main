@@ -108,6 +108,13 @@ add_definitions(
     -DQGC_ENABLE_MAVLINK_INSPECTOR
 )
 
+# Bluetooth: LinkConfiguration.h only declares TypeBluetooth, and
+# QGCApplication.cc only detects the adapter, when this is defined.
+# Defined globally so every target sees the same value.
+add_definitions(
+    -DQGC_ENABLE_BLUETOOTH
+)
+
 #=============================================================================
 # Qt5
 #

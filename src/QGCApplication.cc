@@ -334,10 +334,14 @@ QGCApplication::QGCApplication(int &argc, char* argv[], bool unitTesting)
     // Initialize Bluetooth
 #ifdef QGC_ENABLE_BLUETOOTH
     QBluetoothLocalDevice localDevice;
+    qDebug() << "BT define ON, localDevice valid =" << localDevice.isValid()
+             << "address =" << localDevice.address().toString();
     if (localDevice.isValid())
     {
         _bluetoothAvailable = true;
     }
+#else
+    qDebug() << "BT define is OFF in QGCApplication.cc";
 #endif
 
     // Gstreamer debug settings
