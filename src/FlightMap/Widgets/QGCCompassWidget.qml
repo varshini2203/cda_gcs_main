@@ -73,9 +73,12 @@ Item {
         id:             borderRect
         anchors.fill:   parent
         radius:         width / 2
-        color:          qgcPal.window
-        border.color:   qgcPal.text
-        border.width:   1
+        border.color:   "#0B2A4A"
+        border.width:   Math.max(3, width * 0.035)
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#123B6B" }
+            GradientStop { position: 1.0; color: "#061428" }
+        }
     }
 
     Item {
@@ -148,35 +151,71 @@ Item {
         }
 
 
-        QGCColoredImage {
+        Canvas {
             id:                 compassDial
-            source:             "/qmlimages/compassInstrumentDial.svg"
-            mipmap:             true
-            fillMode:           Image.PreserveAspectFit
             anchors.fill:       parent
-            sourceSize.height:  parent.height
-            color:              qgcPal.text
+            antialiasing:       true
             transform: Rotation {
                 origin.x:       compassDial.width  / 2
                 origin.y:       compassDial.height / 2
                 angle:          isNoseUpLocked()?-_heading:0
             }
+
+            onWidthChanged:     requestPaint()
+            onHeightChanged:    requestPaint()
+
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+                var w = width
+                var c = w / 2
+                var cardinals = ["N", "E", "S", "W"]
+                ctx.translate(c, c)
+                for (var i = 0; i < 72; i++) {
+                    var a = i * 5
+                    ctx.save()
+                    ctx.rotate(a * Math.PI / 180)
+                    if (a % 90 === 0) {
+                        ctx.translate(0, -(c - w * 0.15))
+                        ctx.rotate(-a * Math.PI / 180)
+                        ctx.fillStyle = (a === 0) ? "#FF5A5F" : "#E6F1FF"
+                        ctx.font = "bold " + Math.round(w * 0.12) + "px sans-serif"
+                        ctx.textAlign = "center"
+                        ctx.textBaseline = "middle"
+                        ctx.fillText(cardinals[a / 90], 0, 0)
+                    } else {
+                        var major = (a % 30 === 0)
+                        var len = major ? w * 0.07 : w * 0.035
+                        var r0 = c - w * 0.06
+                        ctx.strokeStyle = major ? "#38BDF8" : "#8FB3D9"
+                        ctx.lineWidth = major ? 2 : 1
+                        ctx.beginPath()
+                        ctx.moveTo(0, -r0)
+                        ctx.lineTo(0, -(r0 - len))
+                        ctx.stroke()
+                    }
+                    ctx.restore()
+                }
+            }
         }
 
-
+        //-- Heading readout
         Rectangle {
-            anchors.centerIn:   parent
-            width:              size * 0.35
-            height:             size * 0.2
-            border.color:       qgcPal.text
-            color:              qgcPal.window
-            opacity:            0.65
+            anchors.horizontalCenter:   parent.horizontalCenter
+            anchors.bottom:             parent.bottom
+            anchors.bottomMargin:       size * 0.2
+            width:                      size * 0.36
+            height:                     size * 0.17
+            radius:                     height / 2
+            color:                      "#E6071A33"
+            border.color:               "#9938BDF8"
+            border.width:               1
 
             QGCLabel {
                 text:               _headingString3
                 font.family:        vehicle ? ScreenTools.demiboldFontFamily : ScreenTools.normalFontFamily
                 font.pointSize:     _fontSize < 8 ? 8 : _fontSize;
-                color:              qgcPal.text
+                color:              "#E6F1FF"
                 anchors.centerIn:   parent
 
                 property string _headingString: vehicle ? _heading.toFixed(0) : "OFF"
@@ -198,6 +237,16 @@ Item {
         anchors.fill:   instrument
         source:         instrument
         maskSource:     mask
+    }
+
+    //-- Accent ring
+    Rectangle {
+        anchors.fill:       parent
+        anchors.margins:    borderRect.border.width
+        radius:             width / 2
+        color:              Qt.rgba(0,0,0,0)
+        border.color:       "#9938BDF8"
+        border.width:       1
     }
 
 }

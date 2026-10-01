@@ -20,10 +20,40 @@ Rectangle {
     id:                 telemetryPanel
     height:             telemetryLayout.height + (_toolsMargin * 2)
     width:              telemetryLayout.width + (_toolsMargin * 2)
-    color:              Qt.hsla(_baseBGColor.hslHue, _baseBGColor.hslSaturation, _baseBGColor.hslLightness, 0.5)
-    radius:             ScreenTools.defaultFontPixelWidth / 2
+    color:              "#F2F6FAFF"
+    radius:             ScreenTools.defaultFontPixelWidth * 1.2
+    border.width:       1
+    border.color:       "#66155EA8"
 
     property color _baseBGColor: qgcPal.window
+
+    //-- Soft drop shadow
+    Rectangle {
+        z:          -1
+        x:          -1
+        y:          3
+        width:      parent.width + 2
+        height:     parent.height + 2
+        radius:     telemetryPanel.radius + 1
+        color:      "#4D000000"
+    }
+
+    //-- Accent strip
+    Rectangle {
+        anchors.top:            parent.top
+        anchors.topMargin:      1
+        anchors.left:           parent.left
+        anchors.leftMargin:     telemetryPanel.radius
+        anchors.right:          parent.right
+        anchors.rightMargin:    telemetryPanel.radius
+        height:                 3
+        radius:                 1.5
+        gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0.0; color: "#1E88E5" }
+            GradientStop { position: 1.0; color: "#38BDF8" }
+        }
+    }
 
     DeadMouseArea { anchors.fill: parent }
 

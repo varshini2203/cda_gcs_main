@@ -36,8 +36,8 @@ Item {
             smooth: true
             antialiasing: true
             gradient: Gradient {
-                GradientStop { position: 0.25; color: Qt.hsla(0.6, 1.0, 0.25) }
-                GradientStop { position: 0.5;  color: Qt.hsla(0.6, 0.5, 0.55) }
+                GradientStop { position: 0.25; color: "#061C3D" }
+                GradientStop { position: 0.5;  color: "#2C8FE0" }
             }
         }
         Rectangle {
@@ -51,9 +51,17 @@ Item {
             smooth: true
             antialiasing: true
             gradient: Gradient {
-                GradientStop { position: 0.0;  color: Qt.hsla(0.25,  0.5, 0.45) }
-                GradientStop { position: 0.25; color: Qt.hsla(0.25, 0.75, 0.25) }
+                GradientStop { position: 0.0;  color: "#5A4630" }
+                GradientStop { position: 0.25; color: "#1E1A14" }
             }
+        }
+        //-- Horizon line
+        Rectangle {
+            anchors.verticalCenter: parent.verticalCenter
+            width:                  parent.width
+            height:                 2
+            color:                  "#E6FFFFFF"
+            antialiasing:           true
         }
         transform: [
             Translate {

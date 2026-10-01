@@ -32,7 +32,7 @@ Item {
     property var    _scaleLengthsMeters:    [5, 10, 25, 50, 100, 150, 250, 500, 1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000, 2000000]
     property var    _scaleLengthsFeet:      [10, 25, 50, 100, 250, 500, 1000, 2000, 3000, 4000, 5280, 5280*2, 5280*5, 5280*10, 5280*25, 5280*50, 5280*100, 5280*250, 5280*500, 5280*1000]
     property bool   _zoomButtonsVisible:    zoomButtonsVisible && !ScreenTools.isMobile
-    property var    _color:                 mapControl.isSatelliteMap ? "white" : "black"
+    property var    _color:                 mapControl.isSatelliteMap ? "#FFFFFF" : "#0B2A4A"
 
     function formatDistanceMeters(meters) {
         var dist = Math.round(meters)
@@ -184,43 +184,92 @@ Item {
         color:              _color
     }
 
-    QGCButton {
+    Rectangle {
         id:                 terrainButton
         anchors.top:        scaleText.top
         anchors.bottom:     rightEnd.bottom
         anchors.leftMargin: buttonsOnLeft ? 0 : ScreenTools.defaultFontPixelWidth / 2
         anchors.left:       buttonsOnLeft ? parent.left : rightEnd.right
-        text:               qsTr("T")
         width:              height
-        opacity:            0.75
+        radius:             ScreenTools.defaultFontPixelWidth * 0.8
+        color:              (terrainButton.checked || terrainButtonMouse.pressed) ? "#4D38BDF8" : (terrainButtonMouse.containsMouse ? "#E60F3A66" : "#D9071A33")
+        border.width:       1
+        border.color:       "#8038BDF8"
+        property bool checked: false
         visible:            terrainButtonVisible
-        onClicked:          terrainButtonClicked()
+
+        Text {
+            anchors.centerIn:   parent
+            text:               qsTr("T")
+            color:              "#E6F1FF"
+            font.bold:          true
+            font.pointSize:     ScreenTools.defaultFontPointSize * 1.1
+        }
+
+        MouseArea {
+            id:             terrainButtonMouse
+            anchors.fill:   parent
+            hoverEnabled:   true
+            onClicked:      terrainButtonClicked()
+        }
     }
 
-    QGCButton {
+    Rectangle {
         id:                 zoomUpButton
         anchors.top:        scaleText.top
         anchors.bottom:     rightEnd.bottom
         anchors.leftMargin: terrainButton.visible ? ScreenTools.defaultFontPixelWidth / 2 : 0
         anchors.left:       terrainButton.visible ? terrainButton.right : terrainButton.left
-        text:               qsTr("+")
         width:              height
-        opacity:            0.75
+        radius:             ScreenTools.defaultFontPixelWidth * 0.8
+        color:              zoomUpButtonMouse.pressed ? "#4D38BDF8" : (zoomUpButtonMouse.containsMouse ? "#E60F3A66" : "#D9071A33")
+        border.width:       1
+        border.color:       "#8038BDF8"
         visible:            _zoomButtonsVisible
-        onClicked:          mapControl.zoomLevel += 0.5
+
+        Text {
+            anchors.centerIn:   parent
+            text:               qsTr("+")
+            color:              "#E6F1FF"
+            font.bold:          true
+            font.pointSize:     ScreenTools.defaultFontPointSize * 1.1
+        }
+
+        MouseArea {
+            id:             zoomUpButtonMouse
+            anchors.fill:   parent
+            hoverEnabled:   true
+            onClicked:      mapControl.zoomLevel += 0.5
+        }
     }
 
-    QGCButton {
+    Rectangle {
         id:                 zoomDownButton
         anchors.top:        scaleText.top
         anchors.bottom:     rightEnd.bottom
         anchors.leftMargin: ScreenTools.defaultFontPixelWidth / 2
         anchors.left:       zoomUpButton.right
-        text:               qsTr("-")
         width:              height
-        opacity:            0.75
+        radius:             ScreenTools.defaultFontPixelWidth * 0.8
+        color:              zoomDownButtonMouse.pressed ? "#4D38BDF8" : (zoomDownButtonMouse.containsMouse ? "#E60F3A66" : "#D9071A33")
+        border.width:       1
+        border.color:       "#8038BDF8"
         visible:            _zoomButtonsVisible
-        onClicked:          mapControl.zoomLevel -= 0.5
+
+        Text {
+            anchors.centerIn:   parent
+            text:               qsTr("-")
+            color:              "#E6F1FF"
+            font.bold:          true
+            font.pointSize:     ScreenTools.defaultFontPointSize * 1.1
+        }
+
+        MouseArea {
+            id:             zoomDownButtonMouse
+            anchors.fill:   parent
+            hoverEnabled:   true
+            onClicked:      mapControl.zoomLevel -= 0.5
+        }
     }
 
     Component.onCompleted: {

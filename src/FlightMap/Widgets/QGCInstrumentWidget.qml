@@ -34,7 +34,23 @@ ColumnLayout {
         height:             _outerRadius * 2
         Layout.fillWidth:   true
         radius:             _outerRadius
-        color:              qgcPal.window
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#F00F3A66" }
+            GradientStop { position: 1.0; color: "#F0071A33" }
+        }
+        border.width:       1
+        border.color:       "#5938BDF8"
+
+        //-- Soft drop shadow
+        Rectangle {
+            z:          -1
+            x:          -1
+            y:          3
+            width:      parent.width + 2
+            height:     parent.height + 2
+            radius:     parent.radius + 1
+            color:      "#59000000"
+        }
 
         DeadMouseArea { anchors.fill: parent }
 

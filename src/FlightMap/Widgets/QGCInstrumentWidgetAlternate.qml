@@ -21,7 +21,12 @@ Rectangle {
     id:             root
     height:         _outerRadius * 4 + _valuesWidget.height
     radius:         _outerRadius
-    color:          qgcPal.window
+    gradient: Gradient {
+        GradientStop { position: 0.0; color: "#F00F3A66" }
+        GradientStop { position: 1.0; color: "#F0071A33" }
+    }
+    border.width:   1
+    border.color:   "#5938BDF8"
 
     // These properties are expected to be in the Loader
     //  property real maxHeight

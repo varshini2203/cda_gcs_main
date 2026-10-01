@@ -17,14 +17,15 @@ import QGroundControl.Controls      1.0
 
 Rectangle {
     id:         _root
-    color:      "#0b2f66"
     gradient: Gradient {
-        GradientStop { position: 0.0; color: "#0b2f66" }
-        GradientStop { position: 1.0; color: "#1565c0" }
+        GradientStop { position: 0.0; color: "#F00F3A66" }
+        GradientStop { position: 1.0; color: "#F0071A33" }
     }
+    border.width:   1
+    border.color:   "#5938BDF8"
     width:      _idealWidth < repeater.contentWidth ? repeater.contentWidth : _idealWidth
     height:     Math.min(maxHeight, toolStripColumn.height + (flickable.anchors.margins * 2))
-    radius:     ScreenTools.defaultFontPixelWidth * 1.0
+    radius:     ScreenTools.defaultFontPixelWidth * 1.2
 
     property alias  model:              repeater.model
     property real   maxHeight           ///< Maximum height for control, determines whether text is hidden to make control shorter
@@ -41,6 +42,17 @@ Rectangle {
     property real _idealWidth: (ScreenTools.isMobile ? ScreenTools.minTouchPixels : ScreenTools.defaultFontPixelWidth * 8) + toolStripColumn.anchors.margins * 2
 
     signal dropped(int index)
+
+    //-- Soft drop shadow
+    Rectangle {
+        z:          -1
+        x:          -1
+        y:          3
+        width:      parent.width + 2
+        height:     parent.height + 2
+        radius:     _root.radius + 1
+        color:      "#59000000"
+    }
 
     DeadMouseArea {
         anchors.fill: parent
@@ -69,7 +81,8 @@ Rectangle {
                 anchors.right:          parent.right
                 horizontalAlignment:    Text.AlignHCenter
                 font.pointSize:         ScreenTools.smallFontPointSize
-                color:                  "white"
+                font.letterSpacing:     1.5
+                color:                  "#38BDF8"
                 font.bold:              true
                 visible:                title != ""
             }

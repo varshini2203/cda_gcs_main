@@ -36,7 +36,9 @@ Button {
     property real imageScale:       0.6
     property real contentMargins:   innerText.height * 0.1
 
-    property color _currentContentColor:  control.enabled ? "white" : "#7f9cc9"
+    property color _currentContentColor:  control.enabled ?
+                                              ((control.checked || control.pressed) ? "#38BDF8" : (control.hovered ? "#FFFFFF" : "#DCEBFA")) :
+                                              "#4F6A8A"
 
     signal dropped(int index)
 
@@ -90,9 +92,22 @@ Button {
 
     background: Rectangle {
         id:             buttonBkRect
-        color:          (control.checked || control.pressed) ?
-                            "#2f80ed" :
-                            (control.hovered ? "#2a6fc0" : "transparent")
         anchors.fill:   parent
+        color:          (control.checked || control.pressed) ?
+                            "#2E38BDF8" :
+                            (control.hovered ? "#1F4C8DD6" : "transparent")
+        border.width:   (control.checked || control.pressed) ? 1 : 0
+        border.color:   "#8038BDF8"
+
+        Rectangle {
+            visible:                    control.checked || control.pressed
+            anchors.left:               parent.left
+            anchors.leftMargin:         2
+            anchors.verticalCenter:     parent.verticalCenter
+            width:                      3
+            height:                     parent.height * 0.5
+            radius:                     1.5
+            color:                      "#38BDF8"
+        }
     }
 }

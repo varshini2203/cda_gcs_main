@@ -113,13 +113,23 @@ Item {
         maskSource: mask
     }
 
+    //-- Premium bezel
     Rectangle {
         id:             borderRect
         anchors.fill:   parent
         radius:         width / 2
         color:          Qt.rgba(0,0,0,0)
-        border.color:   qgcPal.text
-        border.width:   1
+        border.color:   "#0B2A4A"
+        border.width:   Math.max(3, width * 0.035)
+
+        Rectangle {
+            anchors.fill:       parent
+            anchors.margins:    parent.border.width
+            radius:             width / 2
+            color:              Qt.rgba(0,0,0,0)
+            border.color:       "#9938BDF8"
+            border.width:       1
+        }
     }
 
     QGCLabel {
@@ -127,7 +137,7 @@ Item {
         anchors.bottom:             parent.bottom
         anchors.horizontalCenter:   parent.horizontalCenter
         text:                       _headingString3
-        color:                      "white"
+        color:                      "#E6F1FF"
         visible:                    showHeading
 
         property string _headingString: vehicle ? vehicle.heading.rawValue.toFixed(0) : "OFF"
