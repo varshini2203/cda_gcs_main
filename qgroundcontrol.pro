@@ -1438,3 +1438,4 @@ DISTFILES += \
     src/QmlControls/QGroundControl/Specific/qmldir
 
 RESOURCES += $$PWD/src/ui/Auth/Auth.qrc
+RESOURCES += $$PWD/src/ui/SettingsTheme/SettingsTheme.qrc
