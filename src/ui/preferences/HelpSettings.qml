@@ -35,7 +35,7 @@ Rectangle {
             width:          Math.min(parent.width, ScreenTools.defaultFontPixelWidth * 110)
             anchors.horizontalCenter: parent.horizontalCenter
             title:          qsTr("Help & Resources")
-            subtitle:       qsTr("Guides, forums and support links")
+            subtitle:       qsTr("Training, support and contact links")
             iconName:       "help"
             collapsible:    false
 
@@ -44,10 +44,12 @@ Rectangle {
                 spacing:    _margins * 0.6
 
                 Repeater {
+                    // TODO: replace the url values below with the real Chennai Drone Academy links
                     model: [
-                        { name: qsTr("QGroundControl User Guide"),          url: "https://docs.qgroundcontrol.com" },
-                        { name: qsTr("PX4 Users Discussion Forum"),         url: "http://discuss.px4.io/c/qgroundcontrol" },
-                        { name: qsTr("ArduPilot Users Discussion Forum"),   url: "https://discuss.ardupilot.org/c/ground-control-software/qgroundcontrol" }
+                        { name: qsTr("Chennai Drone Academy Website"),      url: "https://www.chennaidroneacademy.com" },
+                        { name: qsTr("CDA Courses & Training"),             url: "https://www.chennaidroneacademy.com/courses" },
+                        { name: qsTr("CDA Support (Email)"),                url: "mailto:support@chennaidroneacademy.com" },
+                        { name: qsTr("CDA YouTube Channel"),                url: "https://www.youtube.com/@chennaidroneacademy" }
                     ]
 
                     delegate: Rectangle {
