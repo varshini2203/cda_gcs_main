@@ -40,9 +40,12 @@ CheckBox {
             Rectangle {
                 anchors.fill:   parent
                 radius:         3
-                color:          control.enabled ? (control.checkedState === Qt.Checked ? "#1e6fd0" : "white") : _qgcPal.text
-                border.color:   control.checkedState === Qt.Checked ? "#1e6fd0" : (_qgcPal.globalTheme === QGCPalette.Light ? "#7f9fcb" : _qgcPal.text)
-                border.width:   1
+                color:          control.enabled ?
+                                    (control.checkedState === Qt.Checked ? "#1e6fd0" : "white") :
+                                    (control.checkedState === Qt.Checked ? "#9db8dc" : "#e6edf6")
+                border.color:   !control.enabled ? "#c3d0e2" :
+                                    (control.checkedState === Qt.Checked ? "#1e6fd0" : (_qgcPal.globalTheme === QGCPalette.Light ? "#5f87bd" : _qgcPal.text))
+                border.width:   2
                 opacity:        control.checkedState === Qt.PartiallyChecked ? 0.5 : 1
                 QGCColoredImage {
                     source:     "/qmlimages/checkbox-check.svg"

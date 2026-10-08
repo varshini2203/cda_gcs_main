@@ -71,6 +71,7 @@ ApplicationWindow {
 
     property var                _rgPreventViewSwitch:       [ false ]
     property bool               _appEntered:                false   ///< true once the user has signed in and left the home screen
+    property string             _toolReturnTo:              "home"  ///< view to return to from a tool: "fly", "plan" or "home"
 
     readonly property real      _topBottomMargins:          ScreenTools.defaultFontPixelHeight * 0.5
 
@@ -146,8 +147,18 @@ ApplicationWindow {
         planView.visible = true
     }
 
-    function showTool(toolTitle, toolSource, toolIcon) {
-        toolDrawer.backIcon     = flightView.visible ? "/qmlimages/PaperPlane.svg" : "/qmlimages/Plan.svg"
+    function showTool(toolTitle, toolSource, toolIcon, toolIconColor) {
+        toolDrawer.toolIconColor = toolIconColor !== undefined ? toolIconColor : qgcPal.text
+        if (flightView.visible) {
+            _toolReturnTo       = "fly"
+            toolDrawer.backIcon = "/qmlimages/PaperPlane.svg"
+        } else if (planView.visible) {
+            _toolReturnTo       = "plan"
+            toolDrawer.backIcon = "/qmlimages/Plan.svg"
+        } else {
+            _toolReturnTo       = "home"
+            toolDrawer.backIcon = "/qml/SettingsIcons/home.svg"
+        }
         toolDrawer.toolTitle    = toolTitle
         toolDrawer.toolSource   = toolSource
         toolDrawer.toolIcon     = toolIcon
@@ -163,7 +174,24 @@ ApplicationWindow {
     }
 
     function showSettingsTool() {
-        showTool(qsTr("Application Settings"), "AppSettings.qml", "/res/QGCLogoWhite")
+        showTool(qsTr("Application Settings"), "AppSettings.qml", "/res/QGCLogoFull", "transparent")
+    }
+
+    /// Closes the open tool (Analyze/Setup/Settings) and returns to the view it was opened from
+    function closeTool() {
+        toolDrawer.visible      = false
+        toolDrawer.toolSource   = ""
+        if (_toolReturnTo === "fly") {
+            toolbar.currentToolbar  = toolbar.flyViewToolbar
+            flightView.visible      = true
+            planView.visible        = false
+        } else if (_toolReturnTo === "plan") {
+            toolbar.currentToolbar  = toolbar.planViewToolbar
+            planView.visible        = true
+            flightView.visible      = false
+        } else {
+            returnToHome()
+        }
     }
 
     /// Leaves whatever view or tool is currently showing (Fly, Plan, Analyze,
@@ -536,6 +564,7 @@ ApplicationWindow {
         property alias toolTitle:   toolbarDrawerText.text
         property alias toolSource:  toolDrawerLoader.source
         property alias toolIcon:    toolIcon.source
+        property color toolIconColor: qgcPal.text
 
         Rectangle {
             id:             toolDrawerToolbar
@@ -559,19 +588,19 @@ ApplicationWindow {
                     height:                 ScreenTools.defaultFontPixelHeight * 2
                     fillMode:               Image.PreserveAspectFit
                     mipmap:                 true
-                    color:                  backRowMouse.containsMouse ? qgcPal.buttonHighlightText : qgcPal.text
+                    color:                  backRowMouse.containsMouse ? "#1565C0" : qgcPal.text
                 }
 
                 QGCLabel {
                     id:     backTextLabel
                     text:   qsTr("Back")
-                    color:  backRowMouse.containsMouse ? qgcPal.buttonHighlightText : qgcPal.text
+                    color:  backRowMouse.containsMouse ? "#1565C0" : qgcPal.text
                 }
 
                 QGCLabel {
                     font.pointSize: ScreenTools.largeFontPointSize
                     text:           "<"
-                    color:          backRowMouse.containsMouse ? qgcPal.buttonHighlightText : qgcPal.text
+                    color:          backRowMouse.containsMouse ? "#1565C0" : qgcPal.text
                 }
 
                 QGCColoredImage {
@@ -580,7 +609,7 @@ ApplicationWindow {
                     height:                 ScreenTools.defaultFontPixelHeight * 2
                     fillMode:               Image.PreserveAspectFit
                     mipmap:                 true
-                    color:                  qgcPal.text
+                    color:                  toolDrawer.toolIconColor
                 }
 
                 QGCLabel {
@@ -601,10 +630,7 @@ ApplicationWindow {
                     id:             backRowMouse
                     hoverEnabled:   true
                     cursorShape:    Qt.PointingHandCursor
-                    onClicked: {
-                        toolDrawer.visible    = false
-                        toolDrawer.toolSource = ""
-                    }
+                    onClicked:      mainWindow.closeTool()
                 }
             }
 

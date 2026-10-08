@@ -239,7 +239,7 @@ Rectangle {
             spacing:                _defaultTextHeight / 4
 
             QGCLabel {
-                text:               qsTr("Fly Higher With CDA")
+                text:               qsTr("Fly High With CDA")
                 color:              "white"
                 font.bold:          true
                 font.italic:        true

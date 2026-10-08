@@ -8,7 +8,7 @@ import QtGraphicalEffects 1.0
 //   - sunset lake / mountain scene (drawn in code, or your own photo via
 //     backgroundSource)
 //   - navy header banner with logo, title and tagline (top-left)
-//   - download icon (top-right) + small logout icon
+//   - small logout icon (top-right)
 //   - drone (top-right), centre badge, title, tagline, Start button
 //   - frosted floating bottom navigation bar
 //
@@ -27,10 +27,11 @@ Item {
     signal downloadClicked()
 
     property int currentNavIndex: 0
+    readonly property bool bgReady: bgImage.status === Image.Ready
 
     // Optional image files. Leave empty to use the built-in drawings.
-    // Example: property url backgroundSource: "qrc:/res/home_bg.jpg"
-    property url backgroundSource: ""
+    // Default: qrc:/res/home_bg.png
+    property url backgroundSource: "qrc:/res/home_bg.png"
     property url logoSource:       ""
     property url droneSource:      ""
 
@@ -226,6 +227,7 @@ Item {
     // ======================= Header banner =================================
     Canvas {
         id: banner
+        visible: !homeScreen.bgReady
         anchors.top: parent.top
         anchors.left: parent.left
         width: Math.min(parent.width * 0.44, 430 * homeScreen.u)
@@ -324,6 +326,15 @@ Item {
             visible: homeScreen.showLogout
             width: 26 * homeScreen.u; height: 26 * homeScreen.u
 
+            Rectangle {
+                visible: homeScreen.bgReady
+                anchors.centerIn: parent
+                width: parent.width + 16 * homeScreen.u
+                height: width
+                radius: width / 2
+                color: "#990B3C8C"
+            }
+
             Canvas {
                 anchors.fill: parent
                 onWidthChanged: requestPaint()
@@ -352,45 +363,12 @@ Item {
             }
             opacity: logoutMouse.pressed ? 0.6 : 1.0
         }
-
-        // Download
-        Item {
-            width: 28 * homeScreen.u; height: 28 * homeScreen.u
-
-            Canvas {
-                anchors.fill: parent
-                onWidthChanged: requestPaint()
-                onPaint: {
-                    var ctx = getContext("2d"); ctx.reset()
-                    ctx.scale(width / 28, height / 28)
-                    ctx.strokeStyle = "white"; ctx.lineWidth = 2.4
-                    ctx.lineCap = "round"; ctx.lineJoin = "round"
-                    ctx.beginPath()
-                    ctx.moveTo(14, 3); ctx.lineTo(14, 17)
-                    ctx.moveTo(8, 11.5); ctx.lineTo(14, 17.5); ctx.lineTo(20, 11.5)
-                    ctx.moveTo(4, 18); ctx.lineTo(4, 24); ctx.lineTo(24, 24); ctx.lineTo(24, 18)
-                    ctx.stroke()
-                }
-            }
-            MouseArea {
-                id: downloadMouse
-                anchors.fill: parent
-                anchors.margins: -6
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: homeScreen.downloadClicked()
-                ToolTip.visible: containsMouse
-                ToolTip.text: "Download"
-                ToolTip.delay: 400
-            }
-            opacity: downloadMouse.pressed ? 0.6 : 1.0
-        }
     }
 
     // ======================= Drone (top right) =============================
     Item {
         id: droneArea
-        visible: homeScreen.width > 700
+        visible: homeScreen.width > 700 && !homeScreen.bgReady
         width: 270 * homeScreen.u
         height: 156 * homeScreen.u
         anchors.right: parent.right
@@ -483,12 +461,13 @@ Item {
     ColumnLayout {
         id: centre
         anchors.centerIn: parent
-        anchors.verticalCenterOffset: -homeScreen.height * 0.045
+        anchors.verticalCenterOffset: homeScreen.bgReady ? homeScreen.height * 0.12 : -homeScreen.height * 0.045
         spacing: 8 * homeScreen.u
 
         // Badge: white disc, blue ring, drone icon
         Item {
             id: badge
+            visible: !homeScreen.bgReady
             Layout.alignment: Qt.AlignHCenter
             Layout.preferredWidth: 104 * homeScreen.u
             Layout.preferredHeight: 104 * homeScreen.u
@@ -534,6 +513,7 @@ Item {
 
         // Title
         Text {
+            visible: !homeScreen.bgReady
             Layout.alignment: Qt.AlignHCenter
             text: "Chennai Drone Academy"
             font.pixelSize: 36 * homeScreen.u
@@ -547,6 +527,7 @@ Item {
 
         // Tagline with side lines
         RowLayout {
+            visible: !homeScreen.bgReady
             Layout.alignment: Qt.AlignHCenter
             spacing: 14 * homeScreen.u
             Rectangle { width: 64 * homeScreen.u; height: 1; color: "white"; opacity: 0.75 }
@@ -568,57 +549,66 @@ Item {
         Rectangle {
             id: startButton
             Layout.alignment: Qt.AlignHCenter
-            Layout.preferredWidth: 176 * homeScreen.u
-            Layout.preferredHeight: 50 * homeScreen.u
+            Layout.preferredWidth: 128 * homeScreen.u
+            Layout.preferredHeight: 38 * homeScreen.u
             radius: height / 2
+            border.width: 1
+            border.color: startMouse.containsMouse ? "#CCFFFFFF" : "#80FFFFFF"
 
             gradient: Gradient {
                 orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "#2E90F0" }
-                GradientStop { position: 1.0; color: "#0B55B8" }
+                GradientStop { position: 0.0; color: startMouse.containsMouse ? "#2F8EF0" : "#1F78D8" }
+                GradientStop { position: 1.0; color: startMouse.containsMouse ? "#0F4FB0" : "#0A3C8C" }
             }
 
-            scale: startMouse.pressed ? 0.97 : 1.0
-            Behavior on scale { NumberAnimation { duration: 110; easing.type: Easing.OutQuad } }
+            scale: startMouse.pressed ? 0.96 : (startMouse.containsMouse ? 1.04 : 1.0)
+            Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutQuad } }
 
             layer.enabled: true
             layer.effect: DropShadow {
-                color: "#66104A9C"; radius: 14; samples: 29; verticalOffset: 5
+                color: "#552A5AA8"; radius: 12; samples: 25; verticalOffset: 4
+            }
+
+            // soft gloss on the top half
+            Rectangle {
+                anchors.top: parent.top
+                anchors.left: parent.left
+                anchors.right: parent.right
+                anchors.topMargin: 1
+                anchors.leftMargin: parent.height * 0.35
+                anchors.rightMargin: parent.height * 0.35
+                height: parent.height * 0.42
+                radius: height / 2
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#40FFFFFF" }
+                    GradientStop { position: 1.0; color: "#00FFFFFF" }
+                }
             }
 
             RowLayout {
                 anchors.centerIn: parent
-                spacing: 10 * homeScreen.u
+                spacing: 8 * homeScreen.u
 
-                Canvas {
-                    Layout.preferredWidth: 13 * homeScreen.u
-                    Layout.preferredHeight: 14 * homeScreen.u
-                    Layout.alignment: Qt.AlignVCenter
-                    onWidthChanged: requestPaint()
-                    onPaint: {
-                        var ctx = getContext("2d"); ctx.reset()
-                        ctx.scale(width / 13, height / 14)
-                        ctx.fillStyle = "white"
-                        ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(13, 7); ctx.lineTo(0, 14)
-                        ctx.closePath(); ctx.fill()
-                    }
-                }
                 Text {
-                    text: "Start"
+                    text: "START"
                     color: "white"
-                    font.pixelSize: 19 * homeScreen.u
+                    font.pixelSize: 13 * homeScreen.u
                     font.weight: Font.DemiBold
+                    font.letterSpacing: 2.2
                 }
                 Text {
                     text: "\u203A"
                     color: "#DCEBFF"
-                    font.pixelSize: 24 * homeScreen.u
+                    font.pixelSize: 20 * homeScreen.u
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.topMargin: -2 * homeScreen.u
                 }
             }
 
             MouseArea {
                 id: startMouse
                 anchors.fill: parent
+                hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: {
                     homeScreen.startClicked()
@@ -631,27 +621,25 @@ Item {
     // ======================= Bottom navigation =============================
     Rectangle {
         id: navBar
-        height: 66 * homeScreen.u
-        radius: 26 * homeScreen.u
-        color: "#B8FFFFFF"
+        height: 58 * homeScreen.u
+        width: Math.min(parent.width - 56 * homeScreen.u, 4 * 92 * homeScreen.u + 12 * homeScreen.u)
+        radius: height / 2
+        color: "#D90A2E66"
         border.width: 1
-        border.color: "#80FFFFFF"
-        anchors.left: parent.left
-        anchors.right: parent.right
+        border.color: "#40FFFFFF"
+        anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.leftMargin: 28 * homeScreen.u
-        anchors.rightMargin: 28 * homeScreen.u
-        anchors.bottomMargin: 20 * homeScreen.u
+        anchors.bottomMargin: 18 * homeScreen.u
 
         layer.enabled: true
         layer.effect: DropShadow {
-            color: "#33104A9C"; radius: 14; samples: 29; verticalOffset: 3
+            color: "#66041A44"; radius: 16; samples: 33; verticalOffset: 5
         }
 
         RowLayout {
             anchors.fill: parent
-            anchors.margins: 5 * homeScreen.u
-            spacing: 4 * homeScreen.u
+            anchors.margins: 6 * homeScreen.u
+            spacing: 2 * homeScreen.u
 
             Repeater {
                 model: [
@@ -669,21 +657,21 @@ Item {
 
                     Rectangle {
                         anchors.fill: parent
-                        radius: 22 * homeScreen.u
-                        color: navItem.active ? "#E6F1FC"
-                                              : (navMouse.containsMouse ? "#66FFFFFF" : "transparent")
-                        opacity: navItem.active ? 0.95 : 1.0
+                        radius: height / 2
+                        color: navItem.active ? "#1E88E5"
+                                              : (navMouse.containsMouse ? "#26FFFFFF" : "transparent")
+                        Behavior on color { ColorAnimation { duration: 140 } }
                     }
 
                     ColumnLayout {
                         anchors.centerIn: parent
-                        spacing: 3 * homeScreen.u
+                        spacing: 2 * homeScreen.u
 
                         Canvas {
                             id: navIcon
                             Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: 24 * homeScreen.u
-                            Layout.preferredHeight: 24 * homeScreen.u
+                            Layout.preferredWidth: 20 * homeScreen.u
+                            Layout.preferredHeight: 20 * homeScreen.u
                             property bool isActive: navItem.active
                             onIsActiveChanged: requestPaint()
                             onWidthChanged: requestPaint()
@@ -691,7 +679,7 @@ Item {
                             onPaint: {
                                 var ctx = getContext("2d"); ctx.reset()
                                 ctx.scale(width / 24, height / 24)
-                                var c = isActive ? homeScreen.accent : homeScreen.textSecondary
+                                var c = isActive ? "#FFFFFF" : "#BFD0E8"
                                 ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = 1.8
                                 ctx.lineCap = "round"; ctx.lineJoin = "round"
                                 var w = 24, h = 24
@@ -712,7 +700,7 @@ Item {
                                     ctx.bezierCurveTo(19, 12.5, 18, 15, 12, 21.5)
                                     ctx.closePath()
                                     if (isActive) ctx.fill(); else ctx.stroke()
-                                    ctx.fillStyle = isActive ? "#E6F1FC" : "#FFFFFF"
+                                    ctx.fillStyle = isActive ? "#1E88E5" : "#0A2E66"
                                     ctx.beginPath(); ctx.arc(12, 9.5, 2.4, 0, Math.PI * 2); ctx.fill()
                                     ctx.stroke()
                                 } else if (modelData.kind === "analyze") {
@@ -737,19 +725,10 @@ Item {
                         Text {
                             text: modelData.label
                             Layout.alignment: Qt.AlignHCenter
-                            font.pixelSize: 11.5 * homeScreen.u
+                            font.pixelSize: 10.5 * homeScreen.u
                             font.weight: navItem.active ? Font.DemiBold : Font.Normal
-                            color: navItem.active ? homeScreen.accent : homeScreen.textSecondary
-                        }
-
-                        Rectangle {
-                            Layout.alignment: Qt.AlignHCenter
-                            Layout.preferredWidth: 22 * homeScreen.u
-                            Layout.preferredHeight: 2.5 * homeScreen.u
-                            radius: height / 2
-                            color: homeScreen.accent
-                            opacity: navItem.active ? 1.0 : 0.0
-                            Behavior on opacity { NumberAnimation { duration: 140 } }
+                            font.letterSpacing: 0.4
+                            color: navItem.active ? "#FFFFFF" : "#BFD0E8"
                         }
                     }
 

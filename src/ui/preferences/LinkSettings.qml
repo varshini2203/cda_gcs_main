@@ -11,6 +11,7 @@
 import QtQuick          2.3
 import QtQuick.Controls 1.2
 import QtQuick.Dialogs  1.2
+import QtQuick.Layouts  1.2
 
 import QGroundControl                       1.0
 import QGroundControl.Controls              1.0
@@ -152,11 +153,17 @@ Rectangle {
 
         //-- Empty state
         Column {
+            id:                 emptyState
             anchors.centerIn:   parent
             spacing:            ScreenTools.defaultFontPixelHeight * 0.5
             visible:            settingsColumn.height < 1
 
+            // Only show the decorations when there is room, so nothing spills over the card header on a phone
+            property bool _roomyIcon: parent.height > ScreenTools.defaultFontPixelHeight * 9
+            property bool _roomyHint: parent.height > ScreenTools.defaultFontPixelHeight * 3.5
+
             Rectangle {
+                visible:                    emptyState._roomyIcon
                 anchors.horizontalCenter:   parent.horizontalCenter
                 width:                      ScreenTools.defaultFontPixelHeight * 4
                 height:                     width
@@ -181,9 +188,11 @@ Rectangle {
                 font.pointSize:             ScreenTools.mediumFontPointSize
             }
             QGCLabel {
+                visible:                    emptyState._roomyHint
                 anchors.horizontalCenter:   parent.horizontalCenter
                 text:                       qsTr("Press Add to create a serial, UDP, TCP or Bluetooth connection")
                 color:                      "#5a6f8f"
+                font.pointSize:             ScreenTools.smallFontPointSize
             }
         }
     }
@@ -194,19 +203,30 @@ Rectangle {
         anchors.left:       parent.left
         anchors.right:      parent.right
         anchors.margins:    ScreenTools.defaultFontPixelWidth
-        height:             buttonRow.height + (ScreenTools.defaultFontPixelHeight * 1.2)
+        height:             buttonRow.implicitHeight + (ScreenTools.defaultFontPixelHeight * 0.8)
         radius:             ScreenTools.defaultFontPixelWidth * 1.2
         color:              "white"
         border.width:       1
         border.color:       "#d3e1f2"
 
-        Row {
+        // Buttons share the full bar width equally, so none are ever pushed off-screen
+        RowLayout {
             id:                         buttonRow
-            spacing:                    ScreenTools.defaultFontPixelWidth
-            anchors.centerIn:           parent
+            anchors.left:               parent.left
+            anchors.right:              parent.right
+            anchors.verticalCenter:     parent.verticalCenter
+            anchors.leftMargin:         ScreenTools.defaultFontPixelWidth
+            anchors.rightMargin:        ScreenTools.defaultFontPixelWidth
+            spacing:                    ScreenTools.defaultFontPixelWidth * 0.8
+
+            Item { Layout.fillWidth: true }
 
             CDAButton {
-                width:      ScreenTools.defaultFontPixelWidth * 12
+                Layout.fillWidth:       false
+                Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 9
+                Layout.minimumWidth:    0
+                heightFactor:           0.4
+                pointSize:              ScreenTools.smallFontPointSize
                 text:       qsTr("Delete")
                 danger:     true
                 enabled:    _currentSelection && !_currentSelection.dynamic
@@ -232,7 +252,11 @@ Rectangle {
                 }
             }
             CDAButton {
-                width:      ScreenTools.defaultFontPixelWidth * 12
+                Layout.fillWidth:       false
+                Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 9
+                Layout.minimumWidth:    0
+                heightFactor:           0.4
+                pointSize:              ScreenTools.smallFontPointSize
                 text:       qsTr("Edit")
                 enabled:    _currentSelection && !_currentSelection.link
                 onClicked: {
@@ -240,7 +264,11 @@ Rectangle {
                 }
             }
             CDAButton {
-                width:      ScreenTools.defaultFontPixelWidth * 12
+                Layout.fillWidth:       false
+                Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 9
+                Layout.minimumWidth:    0
+                heightFactor:           0.4
+                pointSize:              ScreenTools.smallFontPointSize
                 text:       qsTr("Add")
                 primary:    true
                 onClicked: {
@@ -248,14 +276,22 @@ Rectangle {
                 }
             }
             CDAButton {
-                width:      ScreenTools.defaultFontPixelWidth * 14
+                Layout.fillWidth:       false
+                Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 9
+                Layout.minimumWidth:    0
+                heightFactor:           0.4
+                pointSize:              ScreenTools.smallFontPointSize
                 text:       qsTr("Connect")
                 primary:    true
                 enabled:    _currentSelection && !_currentSelection.link
                 onClicked:  QGroundControl.linkManager.createConnectedLink(_currentSelection)
             }
             CDAButton {
-                width:      ScreenTools.defaultFontPixelWidth * 14
+                Layout.fillWidth:       false
+                Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 9
+                Layout.minimumWidth:    0
+                heightFactor:           0.4
+                pointSize:              ScreenTools.smallFontPointSize
                 text:       qsTr("Disconnect")
                 enabled:    _currentSelection && _currentSelection.link
                 onClicked:  _currentSelection.link.disconnect()
@@ -265,12 +301,15 @@ Rectangle {
                 visible:    _currentSelection && _currentSelection.link && _currentSelection.link.isMockLink
                 onClicked:  mainWindow.showPopupDialogFromSource("qrc:/unittest/MockLinkOptionsDlg.qml", { link: _currentSelection.link })
             }
+
+            Item { Layout.fillWidth: true }
         }
     }
 
     Loader {
-        id:             settingLoader
-        anchors.fill:   parent
+        id:                 settingLoader
+        anchors.fill:       parent
+        anchors.topMargin:  linkCard.y + linkCard._headerHeight   // keep the form clear of the page banner
         visible:        false
         property var linkConfig: null
         property var editConfig: null

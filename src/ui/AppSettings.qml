@@ -27,7 +27,14 @@ Rectangle {
     readonly property real _horizontalMargin:   _defaultTextWidth / 2
     readonly property real _verticalMargin:     _defaultTextHeight / 2
     readonly property real _buttonHeight:       ScreenTools.isTinyScreen ? ScreenTools.defaultFontPixelHeight * 3 : ScreenTools.defaultFontPixelHeight * 2.6
-    readonly property real _sidebarWidth:       _defaultTextWidth * 24
+    readonly property bool _compact:            ScreenTools.isMobile || width < _defaultTextWidth * 110
+    readonly property real _sidebarWidth:       _compact ? 0 : _defaultTextWidth * 24
+    readonly property bool _short:              height > 0 && height < _defaultTextHeight * 34     // landscape phone: very little vertical room
+    readonly property real _bannerFullHeight:   _defaultTextHeight * (_short ? 2.8 : (_compact ? 3.4 : 4.6))
+    readonly property real _bannerTopGap:       _defaultTextHeight * (_short ? 0.3 : 0.8)
+    readonly property real _bannerBlock:        _bannerTopGap + _bannerFullHeight + _verticalMargin
+    property var  _innerFlick:                  null
+    readonly property real _bannerScrollY:      _innerFlick ? -(_innerFlick.contentY - _innerFlick.originY + _innerFlick.topMargin) : 0
     readonly property string _iconBase:         "qrc:/qml/SettingsIcons/"
 
     // CDA colours
@@ -59,6 +66,58 @@ Rectangle {
 
     property string _currentTitle:  ""
 
+    function _selectPage(page) {
+        if (mainWindow.preventViewSwitch()) {
+            return
+        }
+        if (__rightPanel.source !== page.url) {
+            __rightPanel.source = page.url
+        }
+        _currentTitle = page.title
+    }
+
+    function _findFlickable(item) {
+        if (!item) {
+            return null
+        }
+        var kids = item.children
+        for (var i = 0; i < kids.length; i++) {
+            var c = kids[i]
+            if (c.visible === false) {
+                continue
+            }
+            if (c.contentY !== undefined && c.flickableDirection !== undefined) {
+                return c
+            }
+            var f = _findFlickable(c)
+            if (f) {
+                return f
+            }
+        }
+        return null
+    }
+
+    function _attachFlickable() {
+        _innerFlick = _findFlickable(__rightPanel.item)
+        if (_innerFlick) {
+            _innerFlick.interactive = true
+        }
+    }
+
+    Binding {
+        target:     settingsView._innerFlick
+        property:   "topMargin"
+        value:      settingsView._bannerBlock
+        when:       settingsView._innerFlick !== null
+    }
+
+    Timer {
+        id:             findFlickTimer
+        interval:       400
+        repeat:         false
+        onTriggered:    settingsView._attachFlickable()
+    }
+
     function _subtitleFor(title) {
         var t = String(title).toLowerCase()
         if (t.indexOf("general")   >= 0) return qsTr("Configure your drone academy system preferences")
@@ -83,6 +142,7 @@ Rectangle {
     //-- Navigation sidebar
     Rectangle {
         id:                 sidebar
+        visible:            !_compact
         width:              _sidebarWidth
         anchors.top:        parent.top
         anchors.bottom:     parent.bottom
@@ -209,15 +269,7 @@ Rectangle {
                             anchors.fill:   parent
                             hoverEnabled:   true
                             cursorShape:    Qt.PointingHandCursor
-                            onClicked: {
-                                if (mainWindow.preventViewSwitch()) {
-                                    return
-                                }
-                                if (__rightPanel.source !== modelData.url) {
-                                    __rightPanel.source = modelData.url
-                                }
-                                settingsView._currentTitle = modelData.title
-                            }
+                            onClicked:      settingsView._selectPage(modelData)
                         }
                     }
                 }
@@ -234,7 +286,7 @@ Rectangle {
             spacing:                _defaultTextHeight / 4
 
             QGCLabel {
-                text:               qsTr("Fly Higher With CDA")
+                text:               qsTr("Fly High With CDA")
                 color:              "white"
                 font.bold:          true
                 font.italic:        true
@@ -248,151 +300,248 @@ Rectangle {
         }
     }
 
-    //-- Page header banner
+    //-- Compact (mobile) top tab bar
     Rectangle {
-        id:                     pageHeader
-        anchors.top:            parent.top
-        anchors.topMargin:      _defaultTextHeight * 0.8
-        anchors.left:           sidebar.right
-        anchors.leftMargin:     _defaultTextWidth * 3
-        anchors.right:          parent.right
-        anchors.rightMargin:    _defaultTextWidth * 3
-        height:                 _defaultTextHeight * 4.6
-        radius:                 _defaultTextWidth * 1.4
-        clip:                   true
-        border.width:           1
-        border.color:           "#d3e1f2"
+        id:                 tabBar
+        visible:            _compact
+        anchors.top:        parent.top
+        anchors.left:       parent.left
+        anchors.right:      parent.right
+        height:             _compact ? _buttonHeight + _verticalMargin * 1.5 : 0
         gradient: Gradient {
             orientation: Gradient.Horizontal
-            GradientStop { position: 0.0; color: "#ffffff" }
-            GradientStop { position: 0.55; color: "#eaf3ff" }
-            GradientStop { position: 1.0; color: "#cfe3fb" }
+            GradientStop { position: 0.0; color: _navyTop }
+            GradientStop { position: 1.0; color: _navyBottom }
         }
 
-        //-- Mountains + drone illustration
-        Canvas {
-            id:                 heroCanvas
-            anchors.right:      parent.right
-            anchors.top:        parent.top
-            anchors.bottom:     parent.bottom
-            width:              Math.min(parent.width * 0.5, _defaultTextWidth * 60)
-            onWidthChanged:     requestPaint()
-            onHeightChanged:    requestPaint()
-            onPaint: {
-                var ctx = getContext("2d")
-                ctx.clearRect(0, 0, width, height)
+        Flickable {
+            id:                 tabFlick
+            anchors.fill:       parent
+            anchors.leftMargin: _horizontalMargin
+            anchors.rightMargin:_horizontalMargin
+            contentWidth:       tabRow.width
+            contentHeight:      height
+            flickableDirection: Flickable.HorizontalFlick
+            boundsBehavior:     Flickable.StopAtBounds
+            clip:               true
 
-                // mountains
-                ctx.fillStyle = "rgba(120,170,235,0.35)"
-                ctx.beginPath()
-                ctx.moveTo(width * 0.15, height)
-                ctx.lineTo(width * 0.45, height * 0.35)
-                ctx.lineTo(width * 0.62, height * 0.65)
-                ctx.lineTo(width * 0.78, height * 0.3)
-                ctx.lineTo(width, height * 0.7)
-                ctx.lineTo(width, height)
-                ctx.closePath()
-                ctx.fill()
-                ctx.fillStyle = "rgba(79,150,230,0.45)"
-                ctx.beginPath()
-                ctx.moveTo(width * 0.5, height)
-                ctx.lineTo(width * 0.72, height * 0.5)
-                ctx.lineTo(width * 0.86, height * 0.75)
-                ctx.lineTo(width * 0.95, height * 0.55)
-                ctx.lineTo(width, height * 0.7)
-                ctx.lineTo(width, height)
-                ctx.closePath()
-                ctx.fill()
+            Row {
+                id:                     tabRow
+                anchors.verticalCenter: parent.verticalCenter
+                spacing:                _horizontalMargin
 
-                // drone
-                var cx = width * 0.66, cy = height * 0.34
-                var arm = height * 0.34
-                ctx.strokeStyle = "#0b2f66"
-                ctx.lineWidth = 3
-                ctx.lineCap = "round"
-                var dirs = [[-1,-0.35],[1,-0.35],[-1,0.35],[1,0.35]]
-                for (var i = 0; i < 4; i++) {
-                    var ex = cx + dirs[i][0] * arm * 1.5
-                    var ey = cy + dirs[i][1] * arm
-                    ctx.beginPath()
-                    ctx.moveTo(cx, cy)
-                    ctx.lineTo(ex, ey)
-                    ctx.stroke()
-                    ctx.fillStyle = "rgba(30,111,208,0.35)"
-                    ctx.beginPath()
-                    ctx.ellipse(ex - arm * 0.55, ey - arm * 0.09 - 2, arm * 1.1, arm * 0.18)
-                    ctx.fill()
-                    ctx.fillStyle = "#0b2f66"
-                    ctx.beginPath()
-                    ctx.arc(ex, ey, 3, 0, Math.PI * 2)
-                    ctx.fill()
+                Repeater {
+                    model:  QGroundControl.corePlugin.settingsPages
+
+                    Rectangle {
+                        id:         tabItem
+                        height:     _buttonHeight
+                        width:      tabContent.width + _defaultTextWidth * 3
+                        radius:     height / 2
+                        color:      _selected ? _activeBlue : (tabMouse.pressed ? _hoverBlue : "transparent")
+
+                        property bool _selected: __rightPanel.source.toString() === modelData.url.toString()
+
+                        Row {
+                            id:                 tabContent
+                            anchors.centerIn:   parent
+                            spacing:            _defaultTextWidth
+
+                            QGCColoredImage {
+                                anchors.verticalCenter: parent.verticalCenter
+                                width:                  _defaultTextHeight * 1.2
+                                height:                 width
+                                sourceSize.height:      height
+                                fillMode:               Image.PreserveAspectFit
+                                color:                  "white"
+                                source:                 _iconBase + _iconFor(modelData.title) + ".svg"
+                            }
+                            QGCLabel {
+                                anchors.verticalCenter: parent.verticalCenter
+                                text:                   modelData.title
+                                color:                  "white"
+                                font.bold:              tabItem._selected
+                            }
+                        }
+
+                        MouseArea {
+                            id:             tabMouse
+                            anchors.fill:   parent
+                            onClicked:      settingsView._selectPage(modelData)
+                        }
+                    }
                 }
-                ctx.fillStyle = "#1e6fd0"
-                ctx.beginPath()
-                ctx.ellipse(cx - arm * 0.45, cy - arm * 0.22, arm * 0.9, arm * 0.44)
-                ctx.fill()
-                ctx.fillStyle = "#0b2f66"
-                ctx.beginPath()
-                ctx.arc(cx, cy + arm * 0.2, arm * 0.13, 0, Math.PI * 2)
-                ctx.fill()
-            }
-        }
-
-        Rectangle {
-            id:                     headerCircle
-            anchors.left:           parent.left
-            anchors.leftMargin:     _defaultTextWidth * 2
-            anchors.verticalCenter: parent.verticalCenter
-            width:                  _defaultTextHeight * 3.2
-            height:                 width
-            radius:                 width / 2
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#3a8af0" }
-                GradientStop { position: 1.0; color: "#1e6fd0" }
-            }
-
-            QGCColoredImage {
-                anchors.centerIn:   parent
-                width:              parent.width * 0.5
-                height:             width
-                sourceSize.height:  height
-                fillMode:           Image.PreserveAspectFit
-                color:              "white"
-                source:             _iconBase + _iconFor(_currentTitle) + ".svg"
-            }
-        }
-
-        Column {
-            anchors.left:           headerCircle.right
-            anchors.leftMargin:     _defaultTextWidth * 1.5
-            anchors.verticalCenter: parent.verticalCenter
-            spacing:                2
-
-            QGCLabel {
-                text:               qsTr("Application Settings")
-                color:              _headingColor
-                font.bold:          true
-                font.pointSize:     ScreenTools.largeFontPointSize * 1.2
-            }
-            QGCLabel {
-                text:               _currentTitle === "" ? "" : _currentTitle + "  \u2022  " + _subtitleFor(_currentTitle)
-                color:              "#5a6f8f"
-                font.pointSize:     ScreenTools.smallFontPointSize
             }
         }
     }
 
-    //-- Panel Contents
-    Loader {
-        id:                     __rightPanel
-        anchors.leftMargin:     _defaultTextWidth * 2
-        anchors.rightMargin:    _defaultTextWidth * 2
-        anchors.topMargin:      _verticalMargin
-        anchors.bottomMargin:   _verticalMargin
-        clip:                   true
-        anchors.left:           sidebar.right
-        anchors.right:          parent.right
-        anchors.top:            pageHeader.bottom
-        anchors.bottom:         parent.bottom
+    //-- Content area (banner + page)
+    Item {
+        id:                 contentArea
+        anchors.top:        _compact ? tabBar.bottom : parent.top
+        anchors.bottom:     parent.bottom
+        anchors.left:       _compact ? parent.left : sidebar.right
+        anchors.right:      parent.right
+        clip:               true
+
+        //-- Page header banner
+        Rectangle {
+            id:                     pageHeader
+            z:                      2
+            y:                      _bannerTopGap + _bannerScrollY
+            anchors.left:           parent.left
+            anchors.leftMargin:     _defaultTextWidth * (_compact ? 1.5 : 3)
+            anchors.right:          parent.right
+            anchors.rightMargin:    _defaultTextWidth * (_compact ? 1.5 : 3)
+            height:                 _bannerFullHeight
+            radius:                 _defaultTextWidth * 1.4
+            clip:                   true
+            border.width:           1
+            border.color:           "#d3e1f2"
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "#ffffff" }
+                GradientStop { position: 0.55; color: "#eaf3ff" }
+                GradientStop { position: 1.0; color: "#cfe3fb" }
+            }
+
+            //-- Mountains + drone illustration
+            Canvas {
+                id:                 heroCanvas
+                visible:            pageHeader.width > _defaultTextWidth * 70
+                anchors.right:      parent.right
+                anchors.top:        parent.top
+                anchors.bottom:     parent.bottom
+                width:              Math.min(parent.width * 0.5, _defaultTextWidth * 60)
+                onWidthChanged:     requestPaint()
+                onHeightChanged:    requestPaint()
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.clearRect(0, 0, width, height)
+
+                    // mountains
+                    ctx.fillStyle = "rgba(120,170,235,0.35)"
+                    ctx.beginPath()
+                    ctx.moveTo(width * 0.15, height)
+                    ctx.lineTo(width * 0.45, height * 0.35)
+                    ctx.lineTo(width * 0.62, height * 0.65)
+                    ctx.lineTo(width * 0.78, height * 0.3)
+                    ctx.lineTo(width, height * 0.7)
+                    ctx.lineTo(width, height)
+                    ctx.closePath()
+                    ctx.fill()
+                    ctx.fillStyle = "rgba(79,150,230,0.45)"
+                    ctx.beginPath()
+                    ctx.moveTo(width * 0.5, height)
+                    ctx.lineTo(width * 0.72, height * 0.5)
+                    ctx.lineTo(width * 0.86, height * 0.75)
+                    ctx.lineTo(width * 0.95, height * 0.55)
+                    ctx.lineTo(width, height * 0.7)
+                    ctx.lineTo(width, height)
+                    ctx.closePath()
+                    ctx.fill()
+
+                    // drone
+                    var cx = width * 0.66, cy = height * 0.34
+                    var arm = height * 0.34
+                    ctx.strokeStyle = "#0b2f66"
+                    ctx.lineWidth = 3
+                    ctx.lineCap = "round"
+                    var dirs = [[-1,-0.35],[1,-0.35],[-1,0.35],[1,0.35]]
+                    for (var i = 0; i < 4; i++) {
+                        var ex = cx + dirs[i][0] * arm * 1.5
+                        var ey = cy + dirs[i][1] * arm
+                        ctx.beginPath()
+                        ctx.moveTo(cx, cy)
+                        ctx.lineTo(ex, ey)
+                        ctx.stroke()
+                        ctx.fillStyle = "rgba(30,111,208,0.35)"
+                        ctx.beginPath()
+                        ctx.ellipse(ex - arm * 0.55, ey - arm * 0.09 - 2, arm * 1.1, arm * 0.18)
+                        ctx.fill()
+                        ctx.fillStyle = "#0b2f66"
+                        ctx.beginPath()
+                        ctx.arc(ex, ey, 3, 0, Math.PI * 2)
+                        ctx.fill()
+                    }
+                    ctx.fillStyle = "#1e6fd0"
+                    ctx.beginPath()
+                    ctx.ellipse(cx - arm * 0.45, cy - arm * 0.22, arm * 0.9, arm * 0.44)
+                    ctx.fill()
+                    ctx.fillStyle = "#0b2f66"
+                    ctx.beginPath()
+                    ctx.arc(cx, cy + arm * 0.2, arm * 0.13, 0, Math.PI * 2)
+                    ctx.fill()
+                }
+            }
+
+            Rectangle {
+                id:                     headerCircle
+                anchors.left:           parent.left
+                anchors.leftMargin:     _defaultTextWidth * 2
+                anchors.verticalCenter: parent.verticalCenter
+                width:                  _bannerFullHeight * 0.7
+                height:                 width
+                radius:                 width / 2
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: "#3a8af0" }
+                    GradientStop { position: 1.0; color: "#1e6fd0" }
+                }
+
+                QGCColoredImage {
+                    anchors.centerIn:   parent
+                    width:              parent.width * 0.5
+                    height:             width
+                    sourceSize.height:  height
+                    fillMode:           Image.PreserveAspectFit
+                    color:              "white"
+                    source:             _iconBase + _iconFor(_currentTitle) + ".svg"
+                }
+            }
+
+            Column {
+                anchors.left:           headerCircle.right
+                anchors.leftMargin:     _defaultTextWidth * 1.5
+                anchors.right:          parent.right
+                anchors.rightMargin:    _defaultTextWidth
+                anchors.verticalCenter: parent.verticalCenter
+                spacing:                2
+
+                QGCLabel {
+                    width:              parent.width
+                    text:               qsTr("Application Settings")
+                    color:              _headingColor
+                    font.bold:          true
+                    font.pointSize:     _compact ? ScreenTools.largeFontPointSize : ScreenTools.largeFontPointSize * 1.2
+                    elide:              Text.ElideRight
+                }
+                QGCLabel {
+                    width:              parent.width
+                    text:               _currentTitle === "" ? "" : _currentTitle + "  \u2022  " + _subtitleFor(_currentTitle)
+                    color:              "#5a6f8f"
+                    font.pointSize:     ScreenTools.smallFontPointSize
+                    elide:              Text.ElideRight
+                }
+            }
+        }
+
+        //-- Panel Contents
+        Loader {
+            id:                     __rightPanel
+            anchors.leftMargin:     _defaultTextWidth * (_compact ? 1 : 2)
+            anchors.rightMargin:    _defaultTextWidth * (_compact ? 1 : 2)
+            anchors.topMargin:      _innerFlick ? 0 : _bannerBlock
+            anchors.bottomMargin:   _verticalMargin
+            clip:                   true
+            anchors.left:           parent.left
+            anchors.right:          parent.right
+            anchors.top:            parent.top
+            anchors.bottom:         parent.bottom
+            onLoaded: {
+                settingsView._innerFlick = null
+                settingsView._attachFlickable()
+                findFlickTimer.restart()
+            }
+        }
     }
 }
