@@ -13,9 +13,30 @@ Item {
     signal accepted(string username)
     signal goToRegister()
 
+    // Drone / coastline photo (resource lives in qgcresources.qrc under /res)
+    property string backgroundSource: "qrc:/res/login_bg.jpg"
+
+    // Fallback sky-blue gradient, only visible if the photo is missing
     Rectangle {
         anchors.fill: parent
-        color: "#FFFFFF"
+        gradient: Gradient {
+            orientation: Gradient.Vertical
+            GradientStop { position: 0.0; color: "#0EA5E9" }
+            GradientStop { position: 0.5; color: "#38BDF8" }
+            GradientStop { position: 1.0; color: "#7DD3FC" }
+        }
+    }
+
+    Image {
+        id: bgImage
+        anchors.fill:        parent
+        source:              root.backgroundSource
+        fillMode:            Image.PreserveAspectCrop
+        horizontalAlignment: Image.AlignHCenter
+        verticalAlignment:   Image.AlignVCenter
+        smooth:              true
+        asynchronous:        true
+        visible:             status === Image.Ready
     }
 
     focus: true
@@ -56,35 +77,15 @@ Item {
         anchors.bottom: parent.bottom
         width:          root.width * root._leftFraction
 
+        // Soft dark scrim on the left only, so the white text stays readable
+        // while the drone (centre of the photo) stays bright and clear.
         Rectangle {
             anchors.fill: parent
             gradient: Gradient {
-                orientation: Gradient.Vertical
-                GradientStop { position: 0.0; color: "#0EA5E9" }
-                GradientStop { position: 0.5; color: "#38BDF8" }
-                GradientStop { position: 1.0; color: "#7DD3FC" }
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "#A6071630" }
+                GradientStop { position: 1.0; color: "#00071630" }
             }
-        }
-
-        // Soft cloud-like glow accents
-        Rectangle {
-            width: parent.width * 0.85
-            height: width
-            radius: width / 2
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: -width * 0.8
-            color: "#FFFFFF"
-            opacity: 0.18
-        }
-        Rectangle {
-            width: 220; height: 220; radius: 110
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.rightMargin: -80
-            anchors.topMargin: -60
-            color: "#FFFFFF"
-            opacity: 0.12
         }
 
         ColumnLayout {
@@ -116,7 +117,7 @@ Item {
                         spacing: 6
                         Label { text: qsTr("Chennai"); color: "white";    font.pointSize: 15; font.bold: true }
                         Label { text: qsTr("Drone");   color: "white";    font.pointSize: 15; font.bold: true }
-                        Label { text: qsTr("Academy"); color: "#0C2A43"; font.pointSize: 15; font.bold: true }
+                        Label { text: qsTr("Academy"); color: "#7DD3FC"; font.pointSize: 15; font.bold: true }
                     }
                     Label {
                         text: qsTr("LEARN  \u2022  FLY  \u2022  BUILD  \u2022  INNOVATE")
@@ -137,7 +138,7 @@ Item {
                 RowLayout {
                     spacing: 10
                     Label { text: qsTr("Welcome"); color: "white";    font.pointSize: 30; font.bold: true }
-                    Label { text: qsTr("Back!");   color: "#0C2A43"; font.pointSize: 30; font.bold: true }
+                    Label { text: qsTr("Back!");   color: "#7DD3FC"; font.pointSize: 30; font.bold: true }
                 }
 
                 Label {
@@ -208,16 +209,11 @@ Item {
         anchors.bottom: parent.bottom
 
         Rectangle {
-            anchors.fill: parent
-            color: "#F5FBFF"
-        }
-
-        Rectangle {
             id: card
             anchors.centerIn: parent
             width: Math.min(340, rightPane.width * 0.8)
             radius: 20
-            color: "white"
+            color: "#F2FFFFFF"
             border.color: "#CFEBFB"
             border.width: 1
             height: cardContent.implicitHeight + 44
