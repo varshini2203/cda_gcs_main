@@ -106,6 +106,8 @@ Item {
         visible:            !multiVehiclePanelSelector.showSingleVehiclePanel
     }
 
+    // Old instrument panel (attitude circle + compass) is hidden.
+    // Kept in the file because other code may refer to instrumentPanel.rightInset.
     FlyViewInstrumentPanel {
         id:                         instrumentPanel
         anchors.margins:            _toolsMargin
@@ -113,10 +115,157 @@ Item {
         anchors.right:              parent.right
         width:                      _rightPanelWidth
         spacing:                    _toolsMargin
-        visible:                    QGroundControl.corePlugin.options.flyView.showInstrumentPanel && multiVehiclePanelSelector.showSingleVehiclePanel
+        visible:                    false
         availableHeight:            parent.height - y - _toolsMargin
 
         property real rightInset: visible ? parent.width - x : 0
+    }
+
+    //-- Compass only: minimal "glass" theme, faded while flying, draggable, lockable
+    Item {
+        id:     movableCompass
+        width:  ScreenTools.defaultFontPixelHeight * 5      // 4 = smaller, 7 = bigger
+        height: width
+        z:      QGroundControl.zOrderWidgets + 1
+
+        property bool locked:   false                       // double-click the compass to lock/unlock
+        property bool _moved:   false     // becomes true after you drag it once
+        property var  _vehicle: globals.activeVehicle
+        property real _heading: _vehicle ? _vehicle.heading.rawValue : 0
+        property bool _focused: dragArea.pressed || dragArea.containsMouse
+
+        // Not disturbing: faint while flying, fully visible only when you touch/hover it
+        opacity: _focused ? 1.0 : 0.70
+        Behavior on opacity { NumberAnimation { duration: 250 } }
+
+        // Place at top-right once the layer has a real size
+        function place() {
+            if (!_moved && _root.width > 0 && _root.height > 0) {
+                x = _root.width - width - _toolsMargin * 2
+                y = _toolsMargin * 2
+            }
+        }
+        Component.onCompleted: place()
+        Connections {
+            target: _root
+            function onWidthChanged()  { movableCompass.place() }
+            function onHeightChanged() { movableCompass.place() }
+        }
+
+        //-- Glass disc
+        Rectangle {
+            anchors.fill:   parent
+            radius:         width / 2
+            color:          "#B3081420"
+            border.color:   movableCompass.locked ? "#80FFB020" : "#8038BDF8"
+            border.width:   1.5
+        }
+
+        //-- Fixed north-up dial (drawn once, never repaints while flying)
+        Canvas {
+            anchors.fill: parent
+            onWidthChanged: requestPaint()
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+                var w = width, c = w / 2
+                var cardinals = ["N", "E", "S", "W"]
+                ctx.translate(c, c)
+                for (var a = 0; a < 360; a += 10) {
+                    ctx.save()
+                    ctx.rotate(a * Math.PI / 180)
+                    if (a % 90 === 0) {
+                        ctx.translate(0, -w * 0.33)
+                        ctx.rotate(-a * Math.PI / 180)
+                        ctx.fillStyle = (a === 0) ? "#FF6B6B" : "#BFD9F2"
+                        ctx.font = "bold " + Math.round(w * 0.14) + "px sans-serif"
+                        ctx.textAlign = "center"
+                        ctx.textBaseline = "middle"
+                        ctx.fillText(cardinals[a / 90], 0, 0)
+                    } else {
+                        var major = (a % 30 === 0)
+                        ctx.strokeStyle = major ? "#7FD3F7" : "#4F7396"
+                        ctx.lineWidth   = major ? 1.5 : 1
+                        ctx.beginPath()
+                        ctx.moveTo(0, -w * 0.47)
+                        ctx.lineTo(0, -w * (major ? 0.40 : 0.43))
+                        ctx.stroke()
+                    }
+                    ctx.restore()
+                }
+            }
+        }
+
+        //-- Heading arrow (only this part moves)
+        Item {
+            id:         arrow
+            anchors.fill: parent
+            rotation:   movableCompass._heading
+            visible:    movableCompass._vehicle !== null && movableCompass._vehicle !== undefined
+            Behavior on rotation { RotationAnimation { duration: 120; direction: RotationAnimation.Shortest } }
+
+            Canvas {
+                anchors.fill: parent
+                onWidthChanged: requestPaint()
+                onPaint: {
+                    var ctx = getContext("2d")
+                    ctx.reset()
+                    var w = width, c = w / 2
+                    ctx.translate(c, c)
+                    ctx.fillStyle = "#38BDF8"
+                    ctx.beginPath()
+                    ctx.moveTo(0, -w * 0.24)           // nose
+                    ctx.lineTo(w * 0.09, w * 0.16)
+                    ctx.lineTo(0, w * 0.09)
+                    ctx.lineTo(-w * 0.09, w * 0.16)
+                    ctx.closePath()
+                    ctx.fill()
+                }
+            }
+        }
+
+        //-- Small centre dot when no vehicle is connected
+        Rectangle {
+            anchors.centerIn:   parent
+            width:              parent.width * 0.08
+            height:             width
+            radius:             width / 2
+            color:              "#7FD3F7"
+            visible:            !arrow.visible
+        }
+
+        //-- Heading number, shown only while touching/hovering
+        Rectangle {
+            anchors.top:                parent.bottom
+            anchors.topMargin:          2
+            anchors.horizontalCenter:   parent.horizontalCenter
+            width:                      headingText.width + 12
+            height:                     headingText.height + 4
+            radius:                     height / 2
+            color:                      "#CC081420"
+            visible:                    movableCompass._focused
+
+            QGCLabel {
+                id:                 headingText
+                anchors.centerIn:   parent
+                color:              "#E6F1FF"
+                text:               movableCompass._vehicle ? Math.round(movableCompass._heading) + "\u00B0" : "OFF"
+            }
+        }
+
+        MouseArea {
+            id:             dragArea
+            anchors.fill:   parent
+            hoverEnabled:   true
+            drag.target:    movableCompass.locked ? undefined : movableCompass
+            drag.minimumX:  0
+            drag.maximumX:  _root.width  - movableCompass.width
+            drag.minimumY:  0
+            drag.maximumY:  _root.height - movableCompass.height
+            cursorShape:    movableCompass.locked ? Qt.ArrowCursor : (pressed ? Qt.ClosedHandCursor : Qt.OpenHandCursor)
+            onDoubleClicked: movableCompass.locked = !movableCompass.locked
+            drag.onActiveChanged: if (drag.active) movableCompass._moved = true
+        }
     }
 
     PhotoVideoControl {
@@ -126,27 +275,11 @@ Item {
         width:                  _rightPanelWidth
     }
 
-    TelemetryValuesBar {
-        id:                 telemetryPanel
-        x:                  recalcXPosition()
-        anchors.margins:    _toolsMargin
-        anchors.bottom:     parent.bottom
+    CDATelemetryBar {
+        id:     telemetryPanel
+        z:      QGroundControl.zOrderWidgets + 1
 
-        function recalcXPosition() {
-            // First try centered
-            var halfRootWidth   = _root.width / 2
-            var halfPanelWidth  = telemetryPanel.width / 2
-            var leftX           = (halfRootWidth - halfPanelWidth) - _toolsMargin
-            var rightX          = (halfRootWidth + halfPanelWidth) + _toolsMargin
-            if (leftX >= parentToolInsets.leftEdgeBottomInset || rightX <= parentToolInsets.rightEdgeBottomInset ) {
-                // It will fit in the horizontalCenter
-                return halfRootWidth - halfPanelWidth
-            } else {
-                // Anchor to left edge
-                return parentToolInsets.leftEdgeBottomInset + _toolsMargin
-            }
-        }
-
+        // position is handled inside CDATelemetryBar (drag to move, double-click to lock)
         property real bottomInset: height
     }
 

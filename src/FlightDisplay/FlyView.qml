@@ -146,6 +146,7 @@ Item {
 
     FlyViewVideo {
         id: videoControl
+        visible: QGroundControl.videoManager.hasVideo
     }
 
     QGCPipOverlay {
@@ -159,6 +160,7 @@ Item {
         fullZOrder:             _fullItemZorder
         pipZOrder:              _pipItemZorder
         show:                   !QGroundControl.videoManager.fullScreen &&
+                                    QGroundControl.videoManager.hasVideo &&
                                     (videoControl.pipState.state === videoControl.pipState.pipState || mapControl.pipState.state === mapControl.pipState.pipState)
     }
 }

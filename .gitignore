@@ -85,3 +85,4 @@ Qt*-linux*.tar.*
 .vs/
 
 libs/airmapd/include/boost
+*.zip
