@@ -33,7 +33,17 @@ Rectangle {
         colorGroupEnabled:  enabled
     }
 
+    // The page banner (AppSettings.qml) floats over the top of the settings content area.
+    // This is how far down from the top of this page the banner ends, wherever this page sits.
+    readonly property real _bannerClearance: {
+        var banner  = (typeof settingsView !== "undefined" && settingsView) ? settingsView._bannerBlock : 0
+        var pageTop = (parent ? parent.y : 0) + y
+        return Math.max(0, banner - pageTop)
+    }
+
     function openCommSettings(lconf) {
+        // Bring the banner back to its resting position before the form opens
+        linkFlick.contentY = linkFlick.originY - linkFlick.topMargin
         settingLoader.linkConfig = lconf
         settingLoader.sourceComponent = commSettings
         settingLoader.visible = true
@@ -52,6 +62,7 @@ Rectangle {
         anchors.right:      parent.right
         anchors.bottom:     buttonBar.top
         anchors.margins:    ScreenTools.defaultFontPixelWidth
+        visible:            !settingLoader.visible
         title:              qsTr("Comm Links")
         subtitle:           qsTr("Select a connection, then connect, edit or remove it")
         iconName:           "link"
@@ -309,7 +320,7 @@ Rectangle {
     Loader {
         id:                 settingLoader
         anchors.fill:       parent
-        anchors.topMargin:  linkCard.y + linkCard._headerHeight   // keep the form clear of the page banner
+        anchors.topMargin:  _linkRoot._bannerClearance            // keep the form clear of the page banner
         visible:        false
         property var linkConfig: null
         property var editConfig: null
