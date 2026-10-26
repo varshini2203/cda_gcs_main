@@ -25,6 +25,8 @@ Item {
     signal analyzeClicked()
     signal settingsClicked()
     signal downloadClicked()
+    signal aircraftClicked()   // bottom bar: Aircraft -> Vehicle Setup
+    signal albumClicked()      // bottom bar: Album    -> opens the saved logs/media folder
 
     property int currentNavIndex: 0
     readonly property bool bgReady: bgImage.status === Image.Ready
@@ -37,6 +39,9 @@ Item {
 
     // Small logout icon next to the download icon (set false to hide it)
     property bool showLogout: true
+
+    // Bottom bar: SkyPixel opens this web page (change to your own gallery / website)
+    property string skyPixelUrl: "https://www.skypixel.com"
 
     // Kept so existing bindings from other files do not break.
     // The new design does not show the telemetry panel any more.
@@ -629,7 +634,7 @@ Item {
         border.color: "#40FFFFFF"
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: 18 * homeScreen.u
+        anchors.bottomMargin: bottomBar.height + 14 * homeScreen.u
 
         layer.enabled: true
         layer.effect: DropShadow {
@@ -746,6 +751,215 @@ Item {
                             case "Settings": homeScreen.settingsClicked(); break
                             }
                         }
+                    }
+                }
+            }
+        }
+    }
+    // ======================= Bottom bar (Aircraft / Album / (o) / SkyPixel / Me) ==========
+    Rectangle {
+        id: bottomBar
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        height: 62 * homeScreen.u
+        color: "#F2101B26"
+
+        Rectangle {   // thin top line
+            anchors.top: parent.top
+            width: parent.width
+            height: 1
+            color: "#26FFFFFF"
+        }
+
+        RowLayout {
+            anchors.fill: parent
+            spacing: 0
+
+            Repeater {
+                model: [
+                    { label: "Aircraft", kind: "aircraft" },
+                    { label: "Album",    kind: "album" },
+                    { label: "",         kind: "capture" },
+                    { label: "SkyPixel", kind: "skypixel" },
+                    { label: "Me",       kind: "me" }
+                ]
+
+                delegate: Item {
+                    id: barItem
+                    Layout.fillHeight: true
+                    Layout.fillWidth: modelData.kind !== "capture"
+                    Layout.preferredWidth: modelData.kind === "capture" ? 110 * homeScreen.u : -1
+                    property bool isCapture: modelData.kind === "capture"
+
+                    // ---- normal items: icon + label ----
+                    ColumnLayout {
+                        visible: !barItem.isCapture
+                        anchors.centerIn: parent
+                        spacing: 3 * homeScreen.u
+
+                        Canvas {
+                            Layout.alignment: Qt.AlignHCenter
+                            Layout.preferredWidth: 24 * homeScreen.u
+                            Layout.preferredHeight: 24 * homeScreen.u
+                            property bool hot: barMouse.containsMouse
+                            onHotChanged: requestPaint()
+                            onWidthChanged: requestPaint()
+
+                            onPaint: {
+                                var ctx = getContext("2d"); ctx.reset()
+                                ctx.scale(width / 24, height / 24)
+                                var c = hot ? "#FFFFFF" : "#C9D3DF"
+                                ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = 1.7
+                                ctx.lineCap = "round"; ctx.lineJoin = "round"
+                                var k = modelData.kind
+                                if (k === "aircraft") {
+                                    var cx = [6, 18, 6, 18], cy = [6, 6, 18, 18]
+                                    for (var i = 0; i < 4; i++) {
+                                        ctx.beginPath(); ctx.arc(cx[i], cy[i], 3.2, 0, Math.PI * 2); ctx.stroke()
+                                        ctx.beginPath()
+                                        ctx.moveTo(12 + (cx[i] - 12) * 0.28, 12 + (cy[i] - 12) * 0.28)
+                                        ctx.lineTo(12 + (cx[i] - 12) * 0.62, 12 + (cy[i] - 12) * 0.62)
+                                        ctx.stroke()
+                                    }
+                                    ctx.fillRect(10, 10, 4, 4)
+                                } else if (k === "album") {
+                                    ctx.beginPath(); ctx.rect(3.5, 4.5, 17, 15); ctx.stroke()
+                                    ctx.beginPath()
+                                    ctx.moveTo(4.5, 17.5); ctx.lineTo(9.5, 11.5); ctx.lineTo(13.5, 15.5)
+                                    ctx.lineTo(16, 13); ctx.lineTo(19.5, 17)
+                                    ctx.stroke()
+                                    ctx.beginPath(); ctx.arc(8.5, 8.8, 1.5, 0, Math.PI * 2); ctx.fill()
+                                } else if (k === "skypixel") {
+                                    ctx.beginPath(); ctx.rect(3.5, 5, 17, 14); ctx.stroke()
+                                    ctx.beginPath()
+                                    ctx.moveTo(10, 9); ctx.lineTo(10, 15); ctx.lineTo(15, 12); ctx.closePath()
+                                    ctx.fill()
+                                } else if (k === "me") {
+                                    ctx.beginPath(); ctx.arc(12, 8, 3.8, 0, Math.PI * 2); ctx.stroke()
+                                    ctx.beginPath(); ctx.arc(12, 20.5, 7.5, Math.PI, 0, false); ctx.stroke()
+                                }
+                            }
+                        }
+
+                        Text {
+                            text: modelData.label
+                            Layout.alignment: Qt.AlignHCenter
+                            font.pixelSize: 11 * homeScreen.u
+                            color: barMouse.containsMouse ? "#FFFFFF" : "#C9D3DF"
+                        }
+                    }
+
+                    // hover underline
+                    Rectangle {
+                        visible: !barItem.isCapture && barMouse.containsMouse
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: 4 * homeScreen.u
+                        width: 44 * homeScreen.u
+                        height: 2
+                        color: "#1E88E5"
+                    }
+
+                    // ---- centre: big round button ----
+                    Rectangle {
+                        visible: barItem.isCapture
+                        anchors.centerIn: parent
+                        width: 44 * homeScreen.u
+                        height: width
+                        radius: width / 2
+                        color: "transparent"
+                        border.width: 3
+                        border.color: "#FFFFFF"
+                        scale: barMouse.pressed ? 0.93 : 1.0
+                        Behavior on scale { NumberAnimation { duration: 100 } }
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: parent.width - 11 * homeScreen.u
+                            height: width
+                            radius: width / 2
+                            color: barMouse.containsMouse ? "#FFFFFF" : "#F2F6FA"
+                        }
+                    }
+
+                    MouseArea {
+                        id: barMouse
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            switch (modelData.kind) {
+                            case "aircraft": homeScreen.aircraftClicked(); break
+                            case "album":    homeScreen.albumClicked(); break
+                            case "capture":  homeScreen.startClicked(); homeScreen.enterApp(); break
+                            case "skypixel": Qt.openUrlExternally(homeScreen.skyPixelUrl); break
+                            case "me":       meMenu.open(); break
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // ---- "Me" popup: signed-in user + Log out ----
+    Popup {
+        id: meMenu
+        parent: homeScreen
+        width: 210 * homeScreen.u
+        height: meCol.implicitHeight + 28 * homeScreen.u
+        x: homeScreen.width - width - 16 * homeScreen.u
+        y: homeScreen.height - bottomBar.height - height - 8 * homeScreen.u
+        modal: false
+        focus: true
+        closePolicy: Popup.CloseOnPressOutside | Popup.CloseOnEscape
+
+        background: Rectangle {
+            radius: 10 * homeScreen.u
+            color: "#F2101B26"
+            border.color: "#33FFFFFF"
+        }
+
+        Column {
+            id: meCol
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            spacing: 8 * homeScreen.u
+
+            Text {
+                text: qsTr("Signed in as")
+                color: "#9FB0C3"
+                font.pixelSize: 11 * homeScreen.u
+            }
+            Text {
+                text: AuthManager.currentUser !== "" ? AuthManager.currentUser : qsTr("Guest")
+                color: "white"
+                font.pixelSize: 15 * homeScreen.u
+                font.weight: Font.DemiBold
+                elide: Text.ElideRight
+                width: parent.width
+            }
+            Rectangle {
+                width: parent.width
+                height: 34 * homeScreen.u
+                radius: 8 * homeScreen.u
+                color: meLogoutMouse.containsMouse ? "#2A6FD0" : "#1E88E5"
+                Text {
+                    anchors.centerIn: parent
+                    text: qsTr("Log out")
+                    color: "white"
+                    font.pixelSize: 13 * homeScreen.u
+                }
+                MouseArea {
+                    id: meLogoutMouse
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: {
+                        meMenu.close()
+                        AuthManager.logout()
                     }
                 }
             }

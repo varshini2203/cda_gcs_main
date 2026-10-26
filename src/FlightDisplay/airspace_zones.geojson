@@ -1,0 +1,11 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "zone": "green",  "name": "India open airspace (sample box)" },
+      "geometry": { "type": "Polygon", "coordinates": [[[68,6],[98,6],[98,37],[68,37],[68,6]]] } },
+    { "type": "Feature", "properties": { "zone": "yellow", "name": "Sample - Chennai airport buffer" },
+      "geometry": { "type": "Polygon", "coordinates": [[[80.05,12.85],[80.35,12.85],[80.35,13.15],[80.05,13.15],[80.05,12.85]]] } },
+    { "type": "Feature", "properties": { "zone": "red",    "name": "Sample red zone" },
+      "geometry": { "type": "Polygon", "coordinates": [[[74,34],[78,34],[78,36.5],[74,36.5],[74,34]]] } }
+  ]
+}

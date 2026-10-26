@@ -17,6 +17,8 @@ Item {
     signal enterPlanView()
     signal enterAnalyzeTool()
     signal enterSettingsTool()
+    signal enterAircraft()
+    signal openAlbum()
 
     StackView {
         id:             stack
@@ -57,6 +59,8 @@ Item {
                 onPlanClicked:     root.enterPlanView()
                 onAnalyzeClicked:  root.enterAnalyzeTool()
                 onSettingsClicked: root.enterSettingsTool()
+                onAircraftClicked: root.enterAircraft()
+                onAlbumClicked:    root.openAlbum()
             }
         }
 

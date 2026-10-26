@@ -547,6 +547,13 @@ ApplicationWindow {
                 mainWindow._appEntered = true
                 mainWindow.showSettingsTool()
             }
+            onEnterAircraft: {
+                mainWindow._appEntered = true
+                mainWindow.showSetupTool()
+            }
+            onOpenAlbum: {
+                Qt.openUrlExternally("file:///" + QGroundControl.settingsManager.appSettings.savePath.rawValue)
+            }
         }
     }
 
