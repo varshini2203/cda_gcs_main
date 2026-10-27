@@ -156,7 +156,7 @@ Item {
         anchors.margins:        _toolsMargin
         item1IsFullSettingsKey: "MainFlyWindowIsMap"
         item1:                  mapControl
-        item2:                  QGroundControl.videoManager.hasVideo ? videoControl : null
+        item2:                  videoControl    // Always show the camera view alongside the map (tap the small one to swap)
         fullZOrder:             _fullItemZorder
         pipZOrder:              _pipItemZorder
         show:                   !QGroundControl.videoManager.fullScreen &&

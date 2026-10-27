@@ -379,6 +379,7 @@ INCLUDEPATH += .
 INCLUDEPATH += \
     include/ui \
     src \
+    src/DigitalSky \
     src/ADSB \
     src/api \
     src/AnalyzeView \
@@ -575,6 +576,7 @@ HEADERS += \
     src/JsonHelper.h \
     src/KMLDomDocument.h \
     src/KMLHelper.h \
+    src/DigitalSky/DigitalSkyZones.h \
     src/LogCompressor.h \
     src/MissionManager/CameraCalc.h \
     src/MissionManager/CameraSection.h \
@@ -807,6 +809,7 @@ SOURCES += \
     src/JsonHelper.cc \
     src/KMLDomDocument.cc \
     src/KMLHelper.cc \
+    src/DigitalSky/DigitalSkyZones.cc \
     src/LogCompressor.cc \
     src/MissionManager/CameraCalc.cc \
     src/MissionManager/CameraSection.cc \

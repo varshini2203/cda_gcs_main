@@ -29,6 +29,7 @@
 #include <QQuickWindow>
 #include <QQuickImageProvider>
 #include <QQuickStyle>
+#include "DigitalSkyZones.h"
 
 #ifdef QGC_ENABLE_BLUETOOTH
 #include <QBluetoothLocalDevice>
@@ -524,6 +525,7 @@ void QGCApplication::_initCommon()
 
     qmlRegisterType<QGCPalette>     ("QGroundControl.Palette", 1, 0, "QGCPalette");
     qmlRegisterType<QGCMapPalette>  ("QGroundControl.Palette", 1, 0, "QGCMapPalette");
+    qmlRegisterType<DigitalSkyZones>("QGroundControl.DigitalSky", 1, 0, "DigitalSkyZones");
 
     qmlRegisterUncreatableType<Vehicle>                 (kQGCVehicle,                       1, 0, "Vehicle",                    kRefOnly);
     qmlRegisterUncreatableType<MissionManager>          (kQGCVehicle,                       1, 0, "MissionManager",             kRefOnly);

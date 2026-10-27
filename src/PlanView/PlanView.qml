@@ -25,12 +25,16 @@ import QGroundControl.Palette           1.0
 import QGroundControl.Controllers       1.0
 import QGroundControl.ShapeFileHelper   1.0
 import QGroundControl.Airspace          1.0
+import QGroundControl.DigitalSky         1.0
 import QGroundControl.Airmap            1.0
 
 Item {
     id: _root
 
     property bool planControlColapsed: false
+
+    property bool   _digitalSkyVisible:         false   // toggled by the Airspace button
+    property bool   _digitalSkyLoaded:          false   // file is only read the first time it is shown
 
     readonly property int   _decimalPlaces:             8
     readonly property real  _margin:                    ScreenTools.defaultFontPixelHeight * 0.5
@@ -487,6 +491,28 @@ Item {
             }
 
             // Add lines between waypoints
+            // Digital Sky zones (India)
+            DigitalSkyZones { id: digitalSkyZones; sourceUrl: _root._digitalSkyLoaded ? "file:///D:/zones/digitalsky.geojson" : "" }
+            MapItemView {
+                model: _root._digitalSkyVisible ? digitalSkyZones.circles : []
+                delegate: MapCircle {
+                    center:         modelData.center
+                    radius:         modelData.radius
+                    color:          modelData.color
+                    border.color:   modelData.lineColor
+                    border.width:   modelData.zone === "green" ? 0 : 2
+                }
+            }
+            MapItemView {
+                model: _root._digitalSkyVisible ? digitalSkyZones.polygons : []
+                delegate: MapPolygon {
+                    path:           modelData.path
+                    color:          modelData.color
+                    border.color:   modelData.lineColor
+                    border.width:   modelData.zone === "green" ? 0 : 2
+                }
+            }
+
             MissionLineView {
                 showSpecialVisual:  _missionController.isROIBeginCurrentItem
                 model:              _missionController.simpleFlightPathSegments
@@ -967,6 +993,21 @@ Item {
             terrainButtonChecked:   terrainStatus.visible
             onTerrainButtonClicked: terrainStatus.toggleVisible()
         }
+
+    // Digital Sky airspace on/off button
+    QGCButton {
+        id:                 digitalSkyButton
+        anchors.top:        parent.top
+        anchors.topMargin:  _toolsMargin
+        anchors.horizontalCenter: parent.horizontalCenter
+        text:               qsTr("Airspace")
+        primary:            _root._digitalSkyVisible
+        z:                  QGroundControl.zOrderWidgets
+        onClicked: {
+            _root._digitalSkyLoaded = true
+            _root._digitalSkyVisible = !_root._digitalSkyVisible
+        }
+    }
     }
 
     Component {

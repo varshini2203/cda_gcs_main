@@ -209,6 +209,7 @@
         <file alias="QGroundControl/FlightDisplay/FlyViewToolStripActionList.qml">src/FlightDisplay/FlyViewToolStripActionList.qml</file>
         <file alias="QGroundControl/FlightDisplay/FlyViewVideo.qml">src/FlightDisplay/FlyViewVideo.qml</file>
         <file alias="QGroundControl/FlightDisplay/FlyViewWidgetLayer.qml">src/FlightDisplay/FlyViewWidgetLayer.qml</file>
+        <file alias="QGroundControl/FlightDisplay/CDATelemetryBar.qml">src/FlightDisplay/CDATelemetryBar.qml</file>
         <file alias="QGroundControl/FlightDisplay/GuidedActionActionList.qml">src/FlightDisplay/GuidedActionActionList.qml</file>
         <file alias="QGroundControl/FlightDisplay/GuidedActionConfirm.qml">src/FlightDisplay/GuidedActionConfirm.qml</file>
         <file alias="QGroundControl/FlightDisplay/GuidedActionsController.qml">src/FlightDisplay/GuidedActionsController.qml</file>
