@@ -915,19 +915,4 @@ FlightMap {
         property real centerInset: visible ? parent.height - y : 0
     }
 
-    // Digital Sky airspace on/off button
-    QGCButton {
-        id:                 digitalSkyButton
-        anchors.top:        parent.top
-        anchors.topMargin:  _toolsMargin
-        anchors.horizontalCenter: parent.horizontalCenter
-        text:               qsTr("Airspace")
-        primary:            _root._digitalSkyVisible
-        z:                  QGroundControl.zOrderWidgets
-        onClicked: {
-            _root._digitalSkyLoaded = true
-            _root._digitalSkyVisible = !_root._digitalSkyVisible
-        }
-    }
-
 }

@@ -121,21 +121,30 @@ Item {
         property real rightInset: visible ? parent.width - x : 0
     }
 
-    //-- Compass only: minimal "glass" theme, faded while flying, draggable, lockable
+    //-- Compass: heading-up rotating dial, degree scale + digital heading readout inside
     Item {
         id:     movableCompass
-        width:  ScreenTools.defaultFontPixelHeight * 5      // 4 = smaller, 7 = bigger
+        width:  ScreenTools.defaultFontPixelHeight * 7.5
         height: width
         z:      QGroundControl.zOrderWidgets + 1
 
         property bool locked:   false                       // double-click the compass to lock/unlock
-        property bool _moved:   false     // becomes true after you drag it once
+        property bool _moved:   false                       // becomes true after you drag it once
         property var  _vehicle: globals.activeVehicle
-        property real _heading: _vehicle ? _vehicle.heading.rawValue : 0
+        property bool _hasHeading: _vehicle !== null && _vehicle !== undefined &&
+                                   _vehicle.heading !== undefined && !isNaN(_vehicle.heading.rawValue)
+        // Always normalised to 0..360 (the vehicle can report negative or >=360 values)
+        property real _heading: _hasHeading ? (((_vehicle.heading.rawValue % 360) + 360) % 360) : 0
+        property int  _headingInt: Math.round(_heading) % 360
         property bool _focused: dragArea.pressed || dragArea.containsMouse
 
-        // Not disturbing: faint while flying, fully visible only when you touch/hover it
-        opacity: _focused ? 1.0 : 0.70
+        function _pad3(n) { return (n < 10 ? "00" : (n < 100 ? "0" : "")) + n }
+        function _cardinal(h) {
+            var names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+            return names[Math.round(h / 45) % 8]
+        }
+
+        opacity: _focused ? 1.0 : 0.88
         Behavior on opacity { NumberAnimation { duration: 250 } }
 
         // Place at top-right once the layer has a real size
@@ -156,100 +165,100 @@ Item {
         Rectangle {
             anchors.fill:   parent
             radius:         width / 2
-            color:          "#B3081420"
+            color:          "#D9081420"
             border.color:   movableCompass.locked ? "#80FFB020" : "#8038BDF8"
             border.width:   1.5
         }
 
-        //-- Fixed north-up dial (drawn once, never repaints while flying)
-        Canvas {
-            anchors.fill: parent
-            onWidthChanged: requestPaint()
-            onPaint: {
-                var ctx = getContext("2d")
-                ctx.reset()
-                var w = width, c = w / 2
-                var cardinals = ["N", "E", "S", "W"]
-                ctx.translate(c, c)
-                for (var a = 0; a < 360; a += 10) {
-                    ctx.save()
-                    ctx.rotate(a * Math.PI / 180)
-                    if (a % 90 === 0) {
-                        ctx.translate(0, -w * 0.33)
-                        ctx.rotate(-a * Math.PI / 180)
-                        ctx.fillStyle = (a === 0) ? "#FF6B6B" : "#BFD9F2"
-                        ctx.font = "bold " + Math.round(w * 0.14) + "px sans-serif"
-                        ctx.textAlign = "center"
-                        ctx.textBaseline = "middle"
-                        ctx.fillText(cardinals[a / 90], 0, 0)
-                    } else {
-                        var major = (a % 30 === 0)
-                        ctx.strokeStyle = major ? "#7FD3F7" : "#4F7396"
-                        ctx.lineWidth   = major ? 1.5 : 1
-                        ctx.beginPath()
-                        ctx.moveTo(0, -w * 0.47)
-                        ctx.lineTo(0, -w * (major ? 0.40 : 0.43))
-                        ctx.stroke()
-                    }
-                    ctx.restore()
-                }
-            }
-        }
-
-        //-- Heading arrow (only this part moves)
+        //-- Rotating compass card. The card turns by -heading, so the bearing the
+        //-- drone is flying is always the one under the fixed marker at the top.
         Item {
-            id:         arrow
-            anchors.fill: parent
-            rotation:   movableCompass._heading
-            visible:    movableCompass._vehicle !== null && movableCompass._vehicle !== undefined
-            Behavior on rotation { RotationAnimation { duration: 120; direction: RotationAnimation.Shortest } }
+            id:             dial
+            anchors.fill:   parent
+            rotation:       -movableCompass._heading
+            Behavior on rotation { RotationAnimation { duration: 150; direction: RotationAnimation.Shortest } }
 
             Canvas {
-                anchors.fill: parent
-                onWidthChanged: requestPaint()
+                anchors.fill:   parent
+                antialiasing:   true
+                onWidthChanged:         requestPaint()
+                onHeightChanged:        requestPaint()
+                Component.onCompleted:  requestPaint()
                 onPaint: {
                     var ctx = getContext("2d")
                     ctx.reset()
                     var w = width, c = w / 2
+                    var cardinals = { 0: "N", 90: "E", 180: "S", 270: "W" }
                     ctx.translate(c, c)
-                    ctx.fillStyle = "#38BDF8"
-                    ctx.beginPath()
-                    ctx.moveTo(0, -w * 0.24)           // nose
-                    ctx.lineTo(w * 0.09, w * 0.16)
-                    ctx.lineTo(0, w * 0.09)
-                    ctx.lineTo(-w * 0.09, w * 0.16)
-                    ctx.closePath()
-                    ctx.fill()
+                    ctx.textAlign    = "center"
+                    ctx.textBaseline = "middle"
+                    for (var a = 0; a < 360; a += 5) {
+                        ctx.save()
+                        ctx.rotate(a * Math.PI / 180)          // clockwise from North
+                        var isCardinal = (a % 90 === 0)
+                        var isMajor    = (a % 30 === 0)
+                        var isMid      = (a % 10 === 0)
+                        ctx.strokeStyle = isMajor ? "#7FD3F7" : (isMid ? "#5B86AD" : "#3F6384")
+                        ctx.lineWidth   = isMajor ? 1.6 : 1
+                        ctx.beginPath()
+                        ctx.moveTo(0, -w * 0.485)
+                        ctx.lineTo(0, -w * (isMajor ? 0.425 : (isMid ? 0.45 : 0.46)))
+                        ctx.stroke()
+                        if (isCardinal) {
+                            ctx.fillStyle = (a === 0) ? "#FF6B6B" : "#E6F1FF"
+                            ctx.font      = "bold " + Math.round(w * 0.13) + "px sans-serif"
+                            ctx.fillText(cardinals[a], 0, -w * 0.35)
+                        } else if (isMajor) {
+                            ctx.fillStyle = "#BFD9F2"
+                            ctx.font      = Math.round(w * 0.085) + "px sans-serif"
+                            ctx.fillText(String(a), 0, -w * 0.36)   // 30, 60, 120, 150 ...
+                        }
+                        ctx.restore()
+                    }
                 }
             }
         }
 
-        //-- Small centre dot when no vehicle is connected
-        Rectangle {
-            anchors.centerIn:   parent
-            width:              parent.width * 0.08
-            height:             width
-            radius:             width / 2
-            color:              "#7FD3F7"
-            visible:            !arrow.visible
+        //-- Fixed pointer at the top (the "nose" of the drone)
+        Canvas {
+            anchors.fill:   parent
+            antialiasing:   true
+            onWidthChanged:         requestPaint()
+            onHeightChanged:        requestPaint()
+            Component.onCompleted:  requestPaint()
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+                var w = width, c = w / 2
+                ctx.translate(c, c)
+                ctx.fillStyle = "#FFB020"
+                ctx.beginPath()
+                ctx.moveTo(0,         -w * 0.435)
+                ctx.lineTo( w * 0.04, -w * 0.505)
+                ctx.lineTo(-w * 0.04, -w * 0.505)
+                ctx.closePath()
+                ctx.fill()
+            }
         }
 
-        //-- Heading number, shown only while touching/hovering
-        Rectangle {
-            anchors.top:                parent.bottom
-            anchors.topMargin:          2
-            anchors.horizontalCenter:   parent.horizontalCenter
-            width:                      headingText.width + 12
-            height:                     headingText.height + 4
-            radius:                     height / 2
-            color:                      "#CC081420"
-            visible:                    movableCompass._focused
+        //-- Digital heading readout in the middle of the compass
+        Column {
+            anchors.centerIn:   parent
+            spacing:            0
 
             QGCLabel {
-                id:                 headingText
-                anchors.centerIn:   parent
-                color:              "#E6F1FF"
-                text:               movableCompass._vehicle ? Math.round(movableCompass._heading) + "\u00B0" : "OFF"
+                anchors.horizontalCenter:   parent.horizontalCenter
+                color:                      movableCompass._hasHeading ? "#FFFFFF" : "#6F8CA8"
+                font.bold:                  true
+                font.pixelSize:             movableCompass.width * 0.17
+                text:                       movableCompass._hasHeading ?
+                                                movableCompass._pad3(movableCompass._headingInt) + "\u00B0" : "---\u00B0"
+            }
+            QGCLabel {
+                anchors.horizontalCenter:   parent.horizontalCenter
+                color:                      "#7FD3F7"
+                font.pixelSize:             movableCompass.width * 0.095
+                text:                       movableCompass._hasHeading ? movableCompass._cardinal(movableCompass._heading) : qsTr("NO DATA")
             }
         }
 

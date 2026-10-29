@@ -83,13 +83,44 @@ endif()
 #=============================================================================
 # GStreamer
 #
-find_package(PkgConfig)
-pkg_check_modules(GST
-    gstreamer-1.0>=1.14
-    gstreamer-video-1.0>=1.14
-    gstreamer-gl-1.0>=1.14
-    egl
-)
+set(GST_FOUND FALSE)
+if(WIN32)
+    # pkg-config is normally NOT installed on Windows, so the original
+    # pkg_check_modules() call silently returned "not found" and the app was
+    # built WITHOUT video support ("NO CAMERA").  Look for the official
+    # GStreamer MSVC 64-bit installer directly instead.
+    set(_GST_ROOT "$ENV{GSTREAMER_1_0_ROOT_MSVC_X86_64}")
+    if(NOT _GST_ROOT)
+        set(_GST_ROOT "C:/gstreamer/1.0/msvc_x86_64")
+    endif()
+    file(TO_CMAKE_PATH "${_GST_ROOT}" _GST_ROOT)
+    if(EXISTS "${_GST_ROOT}/include/gstreamer-1.0/gst/gst.h")
+        set(GST_FOUND TRUE)
+        set(GST_RUNTIME_ROOT ${_GST_ROOT})
+        set(GST_INCLUDE_DIRS
+            ${_GST_ROOT}/include
+            ${_GST_ROOT}/include/gstreamer-1.0
+            ${_GST_ROOT}/include/glib-2.0
+            ${_GST_ROOT}/lib/glib-2.0/include
+            ${_GST_ROOT}/lib/gstreamer-1.0/include
+        )
+        link_directories(${_GST_ROOT}/lib)
+        set(GST_LIBRARIES gstreamer-1.0 gstgl-1.0 gstvideo-1.0 gstbase-1.0 glib-2.0 intl gobject-2.0)
+        message(STATUS "GStreamer: found at ${_GST_ROOT} (video streaming ENABLED)")
+    else()
+        message(WARNING "GStreamer NOT found at ${_GST_ROOT} - video streaming will be DISABLED. "
+                        "Install the GStreamer 1.x MSVC 64-bit runtime AND development installers, "
+                        "or set GSTREAMER_1_0_ROOT_MSVC_X86_64.")
+    endif()
+else()
+    find_package(PkgConfig)
+    pkg_check_modules(GST
+        gstreamer-1.0>=1.14
+        gstreamer-video-1.0>=1.14
+        gstreamer-gl-1.0>=1.14
+        egl
+    )
+endif()
 
 if (GST_FOUND)
     include_directories(
@@ -109,12 +140,6 @@ add_definitions(
     -DQGC_ENABLE_BLUETOOTH
 )
 
-# Bluetooth: LinkConfiguration.h only declares TypeBluetooth, and
-# QGCApplication.cc only detects the adapter, when this is defined.
-# Defined globally so every target sees the same value.
-add_definitions(
-    -DQGC_ENABLE_BLUETOOTH
-)
 
 #=============================================================================
 # Qt5
@@ -214,6 +239,15 @@ if(WIN32)
 endif()
 
 target_link_libraries(QGroundControl PRIVATE qgc)
+
+# Windows: GStreamer DLLs + plugins must sit next to the exe or video will not start.
+if(WIN32 AND GST_FOUND)
+	add_custom_command(TARGET QGroundControl POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${GST_RUNTIME_ROOT}/bin" "$<TARGET_FILE_DIR:QGroundControl>"
+		COMMAND ${CMAKE_COMMAND} -E copy_directory "${GST_RUNTIME_ROOT}/lib/gstreamer-1.0" "$<TARGET_FILE_DIR:QGroundControl>/gstreamer-plugins"
+		COMMENT "Copying GStreamer runtime next to the executable"
+	)
+endif()
 
 if(ANDROID)
 	target_link_options(QGroundControl PRIVATE "-Wl,-u,main")

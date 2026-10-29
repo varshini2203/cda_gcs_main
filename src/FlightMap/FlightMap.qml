@@ -77,16 +77,24 @@ Map {
         }
     }
 
-    // Center map to gcs location
-    onGcsPositionChanged: {
+    // Center map to gcs location (also runs once when the map is created, because the
+    // position fix is often already available before this map exists and
+    // onGcsPositionChanged would then never fire -> map stayed on the whole-world view)
+    function _possiblyCenterToGcsPosition() {
         if (gcsPosition.isValid && allowGCSLocationCenter && !firstGCSPositionReceived && !firstVehiclePositionReceived) {
             firstGCSPositionReceived = true
             //-- Only center on gsc if we have no vehicle (and we are supposed to do so)
             var _activeVehicleCoordinate = _activeVehicle ? _activeVehicle.coordinate : QtPositioning.coordinate()
-            if(QGroundControl.settingsManager.flyViewSettings.keepMapCenteredOnVehicle.rawValue || !_activeVehicleCoordinate.isValid)
+            if(QGroundControl.settingsManager.flyViewSettings.keepMapCenteredOnVehicle.rawValue || !_activeVehicleCoordinate.isValid) {
                 center = gcsPosition
+                if (zoomLevel < 8) {
+                    zoomLevel = QGroundControl.flightMapInitialZoom
+                }
+            }
         }
     }
+
+    onGcsPositionChanged: _possiblyCenterToGcsPosition()
 
     function updateActiveMapType() {
         var settings =  QGroundControl.settingsManager.flightMapSettings
@@ -105,6 +113,7 @@ Map {
     Component.onCompleted: {
         updateActiveMapType()
         _possiblyCenterToVehiclePosition()
+        _possiblyCenterToGcsPosition()
     }
 
     Connections {
