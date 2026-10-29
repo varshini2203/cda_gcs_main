@@ -7,15 +7,16 @@ import QGroundControl.ScreenTools   1.0
 
 // CDA fly-view telemetry panel
 //   Left  : 2 rows  ->  [height icon] alt  climb-rate  /  [distance icon] dist  ground-speed
-//   Right : flight timer (starts automatically when the drone takes off)
+//   Right : flight timer (starts when the drone is armed, stops when disarmed, then shows LAST FLIGHT)
+//   Values use QGC's own fact values + units, so they match the normal QGC telemetry (m/ft, m/s ...)
 Rectangle {
     id:             root
     color:          "#D9081420"
-    radius:         ScreenTools.defaultFontPixelWidth
+    radius:         ScreenTools.defaultFontPixelWidth * 0.8
     border.color:   locked ? "#80FFB020" : "#5538BDF8"
     border.width:   1.5
-    implicitWidth:  main.width  + ScreenTools.defaultFontPixelWidth * 3
-    implicitHeight: main.height + ScreenTools.defaultFontPixelHeight
+    implicitWidth:  main.width  + ScreenTools.defaultFontPixelWidth * 2
+    implicitHeight: main.height + ScreenTools.defaultFontPixelHeight * 0.6
     width:          implicitWidth
     height:         implicitHeight
 
@@ -36,7 +37,7 @@ Rectangle {
             y = parent.height - height - _edgeMargin
         }
     }
-    Component.onCompleted:  place()
+    Component.onCompleted:  { place(); _syncTimer() }
     onWidthChanged:         place()
     onHeightChanged:        place()
 
@@ -48,25 +49,34 @@ Rectangle {
 
     // ---------------- data ----------------
     property var    _vehicle:       QGroundControl.multiVehicleManager.activeVehicle
+    property bool   _armed:         _vehicle ? _vehicle.armed : false
     property bool   _flying:        _vehicle ? _vehicle.flying : false
+    property bool   _everArmed:     false
     property real   _startMs:       0
     property int    _elapsedSec:    0
-    property real   _iconSize:      ScreenTools.defaultFontPixelHeight * 1.5
+    property real   _iconSize:      ScreenTools.defaultFontPixelHeight * 1.1
+    property real   _valuePt:       ScreenTools.defaultFontPointSize * 0.95
+    property real   _timerPt:       ScreenTools.defaultFontPointSize * 1.3
 
-    // 0 = waiting for takeoff, 1 = flying, 2 = landed (shows last flight time)
-    property int    _state:         !_vehicle ? 0 : (_flying ? 1 : (_elapsedSec > 0 ? 2 : 0))
+    // 0 = waiting for arm, 1 = running (armed), 2 = disarmed (shows last flight time)
+    property int    _state:         !_vehicle ? 0 : (_armed ? 1 : (_everArmed ? 2 : 0))
     property color  _accent:        "#38BDF8"
     property color  _timerColor:    _state === 1 ? "#4ADE80" : (_state === 2 ? "#FBBF24" : "#8CA3B8")
 
+    // number from a QGC Fact (cooked value, so ft / mph settings are respected). "--" when not available.
     function _fmt(fact, decimals) {
-        if (_vehicle && fact && fact.rawValue !== undefined && !isNaN(fact.rawValue)) {
-            return fact.rawValue.toFixed(decimals)
+        if (_vehicle && fact && fact.value !== undefined && !isNaN(fact.value)) {
+            return Number(fact.value).toFixed(decimals)
         }
         return "--"
     }
 
-    function _val(fact, decimals, unit) {
-        return "<b>" + _fmt(fact, decimals) + "</b><span style='color:#7FD3F7; font-size:11px'> " + unit + "</span>"
+    function _unit(fact, fallback) {
+        return (_vehicle && fact && fact.units) ? fact.units : fallback
+    }
+
+    function _val(fact, decimals, fallbackUnit) {
+        return "<b>" + _fmt(fact, decimals) + "</b><span style='color:#7FD3F7; font-size:10px'> " + _unit(fact, fallbackUnit) + "</span>"
     }
 
     function _two(n) { return (n < 10 ? "0" : "") + n }
@@ -79,26 +89,40 @@ Rectangle {
     }
 
     // ---------------- flight timer ----------------
-    on_FlyingChanged: {
-        if (_flying) {
-            _startMs    = Date.now()
+    // Armed = drone started. The time is taken from the system clock (not by counting ticks),
+    // so it stays accurate even if the UI lags. It is frozen at disarm and shown as LAST FLIGHT.
+    function _syncTimer() {
+        if (!_vehicle) {
+            tick.stop()
             _elapsedSec = 0
-            tick.start()
-        } else {
+            _everArmed  = false
+            return
+        }
+        if (_armed) {
+            if (!tick.running) {
+                _startMs    = Date.now()
+                _elapsedSec = 0
+                tick.start()
+            }
+            _everArmed = true
+        } else if (tick.running) {
+            _elapsedSec = Math.floor((Date.now() - _startMs) / 1000)
             tick.stop()
         }
     }
 
+    on_ArmedChanged: _syncTimer()
+
     on_VehicleChanged: {
-        if (!_vehicle) {
-            tick.stop()
-            _elapsedSec = 0
-        }
+        tick.stop()
+        _elapsedSec = 0
+        _everArmed  = false
+        _syncTimer()
     }
 
     Timer {
         id:         tick
-        interval:   500
+        interval:   250
         repeat:     true
         onTriggered: root._elapsedSec = Math.floor((Date.now() - root._startMs) / 1000)
     }
@@ -138,11 +162,11 @@ Rectangle {
     RowLayout {
         id:                 main
         anchors.centerIn:   parent
-        spacing:            ScreenTools.defaultFontPixelWidth * 1.5
+        spacing:            ScreenTools.defaultFontPixelWidth * 1.0
 
         //-------- left : 2 telemetry rows --------
         ColumnLayout {
-            spacing: ScreenTools.defaultFontPixelHeight * 0.35
+            spacing: ScreenTools.defaultFontPixelHeight * 0.2
 
             // Row 1 : height + vertical speed
             RowLayout {
@@ -157,15 +181,15 @@ Rectangle {
                     text:       root._val(root._vehicle ? root._vehicle.altitudeRelative : null, 1, "m")
                     textFormat: Text.RichText
                     color:      "white"
-                    font.pointSize: ScreenTools.defaultFontPointSize * 1.15
-                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 9
+                    font.pointSize: root._valuePt
+                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 7.5
                 }
                 QGCLabel {
                     text:       root._val(root._vehicle ? root._vehicle.climbRate : null, 1, "m/s")
                     textFormat: Text.RichText
                     color:      "white"
-                    font.pointSize: ScreenTools.defaultFontPointSize * 1.15
-                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 10
+                    font.pointSize: root._valuePt
+                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 8.5
                 }
             }
 
@@ -182,15 +206,15 @@ Rectangle {
                     text:       root._val(root._vehicle ? root._vehicle.distanceToHome : null, 0, "m")
                     textFormat: Text.RichText
                     color:      "white"
-                    font.pointSize: ScreenTools.defaultFontPointSize * 1.15
-                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 9
+                    font.pointSize: root._valuePt
+                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 7.5
                 }
                 QGCLabel {
                     text:       root._val(root._vehicle ? root._vehicle.groundSpeed : null, 1, "m/s")
                     textFormat: Text.RichText
                     color:      "white"
-                    font.pointSize: ScreenTools.defaultFontPointSize * 1.15
-                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 10
+                    font.pointSize: root._valuePt
+                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 8.5
                 }
             }
         }
@@ -211,8 +235,8 @@ Rectangle {
 
                 Canvas {
                     id:                     timerIcon
-                    Layout.preferredWidth:  root._iconSize * 1.1
-                    Layout.preferredHeight: root._iconSize * 1.1
+                    Layout.preferredWidth:  root._iconSize
+                    Layout.preferredHeight: root._iconSize
                     property color tint:    root._timerColor
                     onTintChanged:          requestPaint()
                     onPaint:                root.drawIcon(getContext("2d"), "timer", width, tint)
@@ -223,8 +247,8 @@ Rectangle {
                     color:          root._timerColor
                     font.bold:      true
                     font.family:    "Consolas"
-                    font.pointSize: ScreenTools.defaultFontPointSize * 1.6
-                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 11
+                    font.pointSize: root._timerPt
+                    Layout.preferredWidth: ScreenTools.defaultFontPixelWidth * 9
                 }
             }
 
@@ -248,9 +272,9 @@ Rectangle {
                     opacity: 1.0
                 }
                 QGCLabel {
-                    text:           root._state === 1 ? qsTr("FLYING") : (root._state === 2 ? qsTr("LAST FLIGHT") : qsTr("FLIGHT TIME"))
+                    text:           root._state === 1 ? (root._flying ? qsTr("FLYING") : qsTr("ARMED")) : (root._state === 2 ? qsTr("LAST FLIGHT") : qsTr("FLIGHT TIME"))
                     color:          root._timerColor
-                    font.pointSize: ScreenTools.defaultFontPointSize * 0.85
+                    font.pointSize: ScreenTools.defaultFontPointSize * 0.75
                     font.bold:      true
                 }
             }

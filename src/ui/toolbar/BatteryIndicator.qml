@@ -27,6 +27,10 @@ Item {
 
     property bool showIndicator: true
 
+    // CDA: number of LiPo cells in the drone battery (3S = 3, 4S = 4, 6S = 6 ...).
+    // 0 = auto detect (reliable only up to 4S). Set it for 5S / 6S / 12S batteries.
+    property int cellCount: 0
+
     property var _activeVehicle: QGroundControl.multiVehicleManager.activeVehicle
 
     Row {
@@ -76,15 +80,39 @@ Item {
                 }
             }
 
-            function getBatteryPercentageText() {
-                if (!isNaN(battery.percentRemaining.rawValue)) {
-                    if (battery.percentRemaining.rawValue > 98.9) {
-                        return qsTr("100%")
-                    } else {
-                        return battery.percentRemaining.valueString + battery.percentRemaining.units
+            // LiPo resting voltage per cell -> percent (linear between points)
+            function voltagePercent(packVoltage) {
+                if (isNaN(packVoltage) || packVoltage <= 0) {
+                    return NaN
+                }
+                var cells = _root.cellCount > 0 ? _root.cellCount : Math.max(1, Math.ceil(packVoltage / 4.25))
+                var v     = packVoltage / cells
+                var table = [[4.20, 100], [4.15, 95], [4.11, 90], [4.08, 85], [4.02, 80], [3.98, 75], [3.95, 70],
+                             [3.91, 65], [3.87, 60], [3.85, 55], [3.84, 50], [3.82, 45], [3.80, 40], [3.79, 35],
+                             [3.77, 30], [3.75, 25], [3.73, 20], [3.71, 15], [3.69, 10], [3.61, 5], [3.27, 0]]
+                if (v >= table[0][0]) {
+                    return 100
+                }
+                for (var i = 1; i < table.length; i++) {
+                    if (v >= table[i][0]) {
+                        var hi = table[i - 1], lo = table[i]
+                        return lo[1] + (v - lo[0]) / (hi[0] - lo[0]) * (hi[1] - lo[1])
                     }
-                } else if (!isNaN(battery.voltage.rawValue)) {
-                    return battery.voltage.valueString + battery.voltage.units
+                }
+                return 0
+            }
+
+            function getBatteryPercentageText() {
+                var dronePct = battery.percentRemaining.rawValue       // percentage reported by the drone
+                var estPct   = voltagePercent(battery.voltage.rawValue) // percentage worked out from pack voltage
+                if (!isNaN(dronePct)) {
+                    // Drone stuck at 100% while the voltage clearly says the pack is not full -> trust the voltage
+                    if (dronePct >= 99.5 && !isNaN(estPct) && estPct < 85) {
+                        return Math.round(estPct) + "%"
+                    }
+                    return Math.round(dronePct) + "%"
+                } else if (!isNaN(estPct)) {
+                    return Math.round(estPct) + "%"
                 } else if (battery.chargeState.rawValue !== MAVLink.MAV_BATTERY_CHARGE_STATE_UNDEFINED) {
                     return battery.chargeState.enumStringValue
                 }

@@ -857,26 +857,6 @@ FlightMap {
         onClicked:          _root._cdaAirspaceOn = !_root._cdaAirspaceOn
     }
 
-    Rectangle {
-        visible:            _root._cdaAirspaceOn && !pipMode
-        anchors.right:          cdaAirspaceButton.right
-        anchors.bottom:         cdaAirspaceButton.top
-        anchors.bottomMargin:   6
-        width:              legendCol.width + 16
-        height:             legendCol.height + 12
-        color:              "#cc000000"
-        radius:             4
-        Column {
-            id:             legendCol
-            anchors.centerIn: parent
-            spacing:        4
-            Row { spacing: 6; Rectangle { width: 14; height: 14; color: "red"    } QGCLabel { text: qsTr("Red - No fly zone");        color: "white" } }
-            Row { spacing: 6; Rectangle { width: 14; height: 14; color: "yellow" } QGCLabel { text: qsTr("Yellow - ATC permission"); color: "white" } }
-            Row { spacing: 6; Rectangle { width: 14; height: 14; color: "green"  } QGCLabel { text: qsTr("Green - up to 400 ft");    color: "white" } }
-            QGCLabel { text: qsTr("Reference only. Check DigitalSky before flight."); color: "white"; font.pointSize: ScreenTools.smallFontPointSize }
-        }
-    }
-
     MapScale {
         id:                 mapScale
         anchors.margins:    _toolsMargin

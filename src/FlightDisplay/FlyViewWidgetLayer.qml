@@ -121,21 +121,26 @@ Item {
         property real rightInset: visible ? parent.width - x : 0
     }
 
-    //-- Compass only: minimal "glass" theme, faded while flying, draggable, lockable
+    //-- Compass: fixed north-up dial. The blue triangle turns with the drone's REAL heading
+    //   and the heading in degrees is always shown INSIDE the compass.
+    //   Drag to move, double-click to lock / unlock.
     Item {
         id:     movableCompass
-        width:  ScreenTools.defaultFontPixelHeight * 5      // 4 = smaller, 7 = bigger
+        width:  ScreenTools.defaultFontPixelHeight * 6      // 5 = smaller, 7 = bigger
         height: width
         z:      QGroundControl.zOrderWidgets + 1
 
-        property bool locked:   false                       // double-click the compass to lock/unlock
-        property bool _moved:   false     // becomes true after you drag it once
-        property var  _vehicle: globals.activeVehicle
-        property real _heading: _vehicle ? _vehicle.heading.rawValue : 0
-        property bool _focused: dragArea.pressed || dragArea.containsMouse
+        property bool locked:       false                   // double-click the compass to lock/unlock
+        property bool _moved:       false                   // becomes true after you drag it once
+        property var  _vehicle:     globals.activeVehicle
+        property bool _hasVehicle:  _vehicle !== null && _vehicle !== undefined
+        property real _rawHeading:  (_hasVehicle && _vehicle.heading) ? _vehicle.heading.rawValue : NaN
+        property bool _hasHeading:  _hasVehicle && !isNaN(_rawHeading)
+        property real _heading:     isNaN(_rawHeading) ? 0 : ((_rawHeading % 360) + 360) % 360
+        property bool _focused:     dragArea.pressed || dragArea.containsMouse
 
-        // Not disturbing: faint while flying, fully visible only when you touch/hover it
-        opacity: _focused ? 1.0 : 0.70
+        // slightly faded while idle, fully visible when you touch / hover it
+        opacity: _focused ? 1.0 : 0.82
         Behavior on opacity { NumberAnimation { duration: 250 } }
 
         // Place at top-right once the layer has a real size
@@ -175,10 +180,10 @@ Item {
                     ctx.save()
                     ctx.rotate(a * Math.PI / 180)
                     if (a % 90 === 0) {
-                        ctx.translate(0, -w * 0.33)
+                        ctx.translate(0, -w * 0.36)
                         ctx.rotate(-a * Math.PI / 180)
                         ctx.fillStyle = (a === 0) ? "#FF6B6B" : "#BFD9F2"
-                        ctx.font = "bold " + Math.round(w * 0.14) + "px sans-serif"
+                        ctx.font = "bold " + Math.round(w * 0.12) + "px sans-serif"
                         ctx.textAlign = "center"
                         ctx.textBaseline = "middle"
                         ctx.fillText(cardinals[a / 90], 0, 0)
@@ -188,7 +193,7 @@ Item {
                         ctx.lineWidth   = major ? 1.5 : 1
                         ctx.beginPath()
                         ctx.moveTo(0, -w * 0.47)
-                        ctx.lineTo(0, -w * (major ? 0.40 : 0.43))
+                        ctx.lineTo(0, -w * (major ? 0.41 : 0.44))
                         ctx.stroke()
                     }
                     ctx.restore()
@@ -196,12 +201,13 @@ Item {
             }
         }
 
-        //-- Heading arrow (only this part moves)
+        //-- Heading triangle (only this part moves). It sits on the inner ring so the
+        //   degree number in the middle is never covered.
         Item {
             id:         arrow
             anchors.fill: parent
             rotation:   movableCompass._heading
-            visible:    movableCompass._vehicle !== null && movableCompass._vehicle !== undefined
+            visible:    movableCompass._hasHeading
             Behavior on rotation { RotationAnimation { duration: 120; direction: RotationAnimation.Shortest } }
 
             Canvas {
@@ -214,43 +220,22 @@ Item {
                     ctx.translate(c, c)
                     ctx.fillStyle = "#38BDF8"
                     ctx.beginPath()
-                    ctx.moveTo(0, -w * 0.24)           // nose
-                    ctx.lineTo(w * 0.09, w * 0.16)
-                    ctx.lineTo(0, w * 0.09)
-                    ctx.lineTo(-w * 0.09, w * 0.16)
+                    ctx.moveTo(0, -w * 0.29)                 // tip (points where the nose points)
+                    ctx.lineTo(w * 0.10, -w * 0.165)
+                    ctx.lineTo(-w * 0.10, -w * 0.165)
                     ctx.closePath()
                     ctx.fill()
                 }
             }
         }
 
-        //-- Small centre dot when no vehicle is connected
-        Rectangle {
+        //-- Heading in degrees, always inside the compass
+        QGCLabel {
             anchors.centerIn:   parent
-            width:              parent.width * 0.08
-            height:             width
-            radius:             width / 2
-            color:              "#7FD3F7"
-            visible:            !arrow.visible
-        }
-
-        //-- Heading number, shown only while touching/hovering
-        Rectangle {
-            anchors.top:                parent.bottom
-            anchors.topMargin:          2
-            anchors.horizontalCenter:   parent.horizontalCenter
-            width:                      headingText.width + 12
-            height:                     headingText.height + 4
-            radius:                     height / 2
-            color:                      "#CC081420"
-            visible:                    movableCompass._focused
-
-            QGCLabel {
-                id:                 headingText
-                anchors.centerIn:   parent
-                color:              "#E6F1FF"
-                text:               movableCompass._vehicle ? Math.round(movableCompass._heading) + "\u00B0" : "OFF"
-            }
+            font.bold:          true
+            font.pixelSize:     Math.max(8, Math.round(movableCompass.width * 0.15))
+            color:              movableCompass._hasHeading ? "#E6F1FF" : "#7C93A8"
+            text:               movableCompass._hasHeading ? ((Math.round(movableCompass._heading) % 360) + "\u00B0") : "--"
         }
 
         MouseArea {
@@ -268,11 +253,11 @@ Item {
         }
     }
 
+    //-- Camera / recording: one small button. Tap it -> Photo + Record buttons appear.
     PhotoVideoControl {
         anchors.margins:        _toolsMargin
         anchors.verticalCenter: parent.verticalCenter
         anchors.right:          parent.right
-        width:                  _rightPanelWidth
     }
 
     CDATelemetryBar {
