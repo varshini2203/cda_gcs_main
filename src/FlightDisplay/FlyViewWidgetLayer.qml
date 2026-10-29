@@ -121,6 +121,7 @@ Item {
         property real rightInset: visible ? parent.width - x : 0
     }
 
+<<<<<<< HEAD
     //-- Compass: fixed north-up dial. The blue triangle turns with the drone's REAL heading
     //   and the heading in degrees is always shown INSIDE the compass.
     //   Drag to move, double-click to lock / unlock.
@@ -141,6 +142,32 @@ Item {
 
         // slightly faded while idle, fully visible when you touch / hover it
         opacity: _focused ? 1.0 : 0.82
+=======
+    //-- Compass: heading-up rotating dial, degree scale + digital heading readout inside
+    Item {
+        id:     movableCompass
+        width:  ScreenTools.defaultFontPixelHeight * 7.5
+        height: width
+        z:      QGroundControl.zOrderWidgets + 1
+
+        property bool locked:   false                       // double-click the compass to lock/unlock
+        property bool _moved:   false                       // becomes true after you drag it once
+        property var  _vehicle: globals.activeVehicle
+        property bool _hasHeading: _vehicle !== null && _vehicle !== undefined &&
+                                   _vehicle.heading !== undefined && !isNaN(_vehicle.heading.rawValue)
+        // Always normalised to 0..360 (the vehicle can report negative or >=360 values)
+        property real _heading: _hasHeading ? (((_vehicle.heading.rawValue % 360) + 360) % 360) : 0
+        property int  _headingInt: Math.round(_heading) % 360
+        property bool _focused: dragArea.pressed || dragArea.containsMouse
+
+        function _pad3(n) { return (n < 10 ? "00" : (n < 100 ? "0" : "")) + n }
+        function _cardinal(h) {
+            var names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"]
+            return names[Math.round(h / 45) % 8]
+        }
+
+        opacity: _focused ? 1.0 : 0.88
+>>>>>>> a7402bb7cc926b63f16a90126fc2e29b0e73cb42
         Behavior on opacity { NumberAnimation { duration: 250 } }
 
         // Place at top-right once the layer has a real size
@@ -161,11 +188,12 @@ Item {
         Rectangle {
             anchors.fill:   parent
             radius:         width / 2
-            color:          "#B3081420"
+            color:          "#D9081420"
             border.color:   movableCompass.locked ? "#80FFB020" : "#8038BDF8"
             border.width:   1.5
         }
 
+<<<<<<< HEAD
         //-- Fixed north-up dial (drawn once, never repaints while flying)
         Canvas {
             anchors.fill: parent
@@ -209,15 +237,29 @@ Item {
             rotation:   movableCompass._heading
             visible:    movableCompass._hasHeading
             Behavior on rotation { RotationAnimation { duration: 120; direction: RotationAnimation.Shortest } }
+=======
+        //-- Rotating compass card. The card turns by -heading, so the bearing the
+        //-- drone is flying is always the one under the fixed marker at the top.
+        Item {
+            id:             dial
+            anchors.fill:   parent
+            rotation:       -movableCompass._heading
+            Behavior on rotation { RotationAnimation { duration: 150; direction: RotationAnimation.Shortest } }
+>>>>>>> a7402bb7cc926b63f16a90126fc2e29b0e73cb42
 
             Canvas {
-                anchors.fill: parent
-                onWidthChanged: requestPaint()
+                anchors.fill:   parent
+                antialiasing:   true
+                onWidthChanged:         requestPaint()
+                onHeightChanged:        requestPaint()
+                Component.onCompleted:  requestPaint()
                 onPaint: {
                     var ctx = getContext("2d")
                     ctx.reset()
                     var w = width, c = w / 2
+                    var cardinals = { 0: "N", 90: "E", 180: "S", 270: "W" }
                     ctx.translate(c, c)
+<<<<<<< HEAD
                     ctx.fillStyle = "#38BDF8"
                     ctx.beginPath()
                     ctx.moveTo(0, -w * 0.29)                 // tip (points where the nose points)
@@ -225,10 +267,38 @@ Item {
                     ctx.lineTo(-w * 0.10, -w * 0.165)
                     ctx.closePath()
                     ctx.fill()
+=======
+                    ctx.textAlign    = "center"
+                    ctx.textBaseline = "middle"
+                    for (var a = 0; a < 360; a += 5) {
+                        ctx.save()
+                        ctx.rotate(a * Math.PI / 180)          // clockwise from North
+                        var isCardinal = (a % 90 === 0)
+                        var isMajor    = (a % 30 === 0)
+                        var isMid      = (a % 10 === 0)
+                        ctx.strokeStyle = isMajor ? "#7FD3F7" : (isMid ? "#5B86AD" : "#3F6384")
+                        ctx.lineWidth   = isMajor ? 1.6 : 1
+                        ctx.beginPath()
+                        ctx.moveTo(0, -w * 0.485)
+                        ctx.lineTo(0, -w * (isMajor ? 0.425 : (isMid ? 0.45 : 0.46)))
+                        ctx.stroke()
+                        if (isCardinal) {
+                            ctx.fillStyle = (a === 0) ? "#FF6B6B" : "#E6F1FF"
+                            ctx.font      = "bold " + Math.round(w * 0.13) + "px sans-serif"
+                            ctx.fillText(cardinals[a], 0, -w * 0.35)
+                        } else if (isMajor) {
+                            ctx.fillStyle = "#BFD9F2"
+                            ctx.font      = Math.round(w * 0.085) + "px sans-serif"
+                            ctx.fillText(String(a), 0, -w * 0.36)   // 30, 60, 120, 150 ...
+                        }
+                        ctx.restore()
+                    }
+>>>>>>> a7402bb7cc926b63f16a90126fc2e29b0e73cb42
                 }
             }
         }
 
+<<<<<<< HEAD
         //-- Heading in degrees, always inside the compass
         QGCLabel {
             anchors.centerIn:   parent
@@ -236,6 +306,49 @@ Item {
             font.pixelSize:     Math.max(8, Math.round(movableCompass.width * 0.15))
             color:              movableCompass._hasHeading ? "#E6F1FF" : "#7C93A8"
             text:               movableCompass._hasHeading ? ((Math.round(movableCompass._heading) % 360) + "\u00B0") : "--"
+=======
+        //-- Fixed pointer at the top (the "nose" of the drone)
+        Canvas {
+            anchors.fill:   parent
+            antialiasing:   true
+            onWidthChanged:         requestPaint()
+            onHeightChanged:        requestPaint()
+            Component.onCompleted:  requestPaint()
+            onPaint: {
+                var ctx = getContext("2d")
+                ctx.reset()
+                var w = width, c = w / 2
+                ctx.translate(c, c)
+                ctx.fillStyle = "#FFB020"
+                ctx.beginPath()
+                ctx.moveTo(0,         -w * 0.435)
+                ctx.lineTo( w * 0.04, -w * 0.505)
+                ctx.lineTo(-w * 0.04, -w * 0.505)
+                ctx.closePath()
+                ctx.fill()
+            }
+        }
+
+        //-- Digital heading readout in the middle of the compass
+        Column {
+            anchors.centerIn:   parent
+            spacing:            0
+
+            QGCLabel {
+                anchors.horizontalCenter:   parent.horizontalCenter
+                color:                      movableCompass._hasHeading ? "#FFFFFF" : "#6F8CA8"
+                font.bold:                  true
+                font.pixelSize:             movableCompass.width * 0.17
+                text:                       movableCompass._hasHeading ?
+                                                movableCompass._pad3(movableCompass._headingInt) + "\u00B0" : "---\u00B0"
+            }
+            QGCLabel {
+                anchors.horizontalCenter:   parent.horizontalCenter
+                color:                      "#7FD3F7"
+                font.pixelSize:             movableCompass.width * 0.095
+                text:                       movableCompass._hasHeading ? movableCompass._cardinal(movableCompass._heading) : qsTr("NO DATA")
+            }
+>>>>>>> a7402bb7cc926b63f16a90126fc2e29b0e73cb42
         }
 
         MouseArea {

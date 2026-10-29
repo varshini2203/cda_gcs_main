@@ -15,6 +15,7 @@ import QtQuick.Dialogs              1.2
 
 import QGroundControl               1.0
 import QGroundControl.Airspace      1.0
+import QGroundControl.DigitalSky     1.0
 import QGroundControl.Controllers   1.0
 import QGroundControl.Controls      1.0
 import QGroundControl.FlightDisplay 1.0
@@ -55,6 +56,9 @@ FlightMap {
     property bool   _keepMapCenteredOnVehicle:  _flyViewSettings.keepMapCenteredOnVehicle.rawValue
 
     property bool   _disableVehicleTracking:    false
+
+    property bool   _digitalSkyVisible:         false   // toggled by the Airspace button
+    property bool   _digitalSkyLoaded:          false   // file is only read the first time it is shown
     property bool   _keepVehicleCentered:       pipMode ? true : false
     property bool   _saveZoomLevelSetting:      true
 
@@ -548,6 +552,28 @@ FlightMap {
                 clickMenu.coord = clickCoord
                 clickMenu.popup()
             }
+        }
+    }
+
+    // Digital Sky zones (India)
+    DigitalSkyZones { id: digitalSkyZones; sourceUrl: _root._digitalSkyLoaded ? "file:///D:/zones/digitalsky.geojson" : "" }
+    MapItemView {
+        model: _root._digitalSkyVisible ? digitalSkyZones.circles : []
+        delegate: MapCircle {
+            center:         modelData.center
+            radius:         modelData.radius
+            color:          modelData.color
+            border.color:   modelData.lineColor
+            border.width:   2
+        }
+    }
+    MapItemView {
+        model: _root._digitalSkyVisible ? digitalSkyZones.polygons : []
+        delegate: MapPolygon {
+            path:           modelData.path
+            color:          modelData.color
+            border.color:   modelData.lineColor
+            border.width:   modelData.zone === "green" ? 0 : 2
         }
     }
 

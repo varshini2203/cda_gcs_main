@@ -1,5 +1,6 @@
 include_directories(
         .
+        DigitalSky
         ${CMAKE_CURRENT_BINARY_DIR}
         ${Qt5Location_PRIVATE_INCLUDE_DIRS}
         VideoManager
@@ -91,6 +92,8 @@ add_library(qgc
         JsonHelper.h
         KMLDomDocument.cc
         KMLDomDocument.h
+        DigitalSky/DigitalSkyZones.cc
+        DigitalSky/DigitalSkyZones.h
         KMLHelper.cc
         KMLHelper.h
         LogCompressor.cc
@@ -169,6 +172,7 @@ target_link_libraries(qgc
         PRIVATE
                 shp
                 Qt5::QuickControls2
+                Qt5::Network
                 $<$<NOT:$<BOOL:${ANDROID}>>:${CMAKE_SOURCE_DIR}/libs/zlib/windows/lib/z.lib>
                 $<$<BOOL:${ANDROID}>:z>
 

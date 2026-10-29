@@ -40,8 +40,8 @@ Item {
     // Small logout icon next to the download icon (set false to hide it)
     property bool showLogout: true
 
-    // Bottom bar: SkyPixel opens this web page (change to your own gallery / website)
-    property string skyPixelUrl: "https://www.skypixel.com"
+    // Bottom bar: Chennai Drone Academy opens this web page
+    property string websiteUrl: "https://chennaidroneacademy.com/"
 
     // Kept so existing bindings from other files do not break.
     // The new design does not show the telemetry panel any more.
@@ -756,7 +756,7 @@ Item {
             }
         }
     }
-    // ======================= Bottom bar (Aircraft / Album / (o) / SkyPixel / Me) ==========
+    // ======================= Bottom bar (Aircraft / Album / (o) / Chennai Drone Academy / Me) ==========
     Rectangle {
         id: bottomBar
         anchors.left: parent.left
@@ -781,7 +781,7 @@ Item {
                     { label: "Aircraft", kind: "aircraft" },
                     { label: "Album",    kind: "album" },
                     { label: "",         kind: "capture" },
-                    { label: "SkyPixel", kind: "skypixel" },
+                    { label: "Chennai Drone Academy", kind: "website" },
                     { label: "Me",       kind: "me" }
                 ]
 
@@ -830,11 +830,12 @@ Item {
                                     ctx.lineTo(16, 13); ctx.lineTo(19.5, 17)
                                     ctx.stroke()
                                     ctx.beginPath(); ctx.arc(8.5, 8.8, 1.5, 0, Math.PI * 2); ctx.fill()
-                                } else if (k === "skypixel") {
-                                    ctx.beginPath(); ctx.rect(3.5, 5, 17, 14); ctx.stroke()
-                                    ctx.beginPath()
-                                    ctx.moveTo(10, 9); ctx.lineTo(10, 15); ctx.lineTo(15, 12); ctx.closePath()
-                                    ctx.fill()
+                                } else if (k === "website") {
+                                    ctx.beginPath(); ctx.arc(12, 12, 8.5, 0, Math.PI * 2); ctx.stroke()
+                                    ctx.beginPath(); ctx.ellipse(7.5, 3.5, 9, 17); ctx.stroke()
+                                    ctx.beginPath(); ctx.moveTo(3.5, 12); ctx.lineTo(20.5, 12); ctx.stroke()
+                                    ctx.beginPath(); ctx.moveTo(5, 7.5); ctx.lineTo(19, 7.5); ctx.stroke()
+                                    ctx.beginPath(); ctx.moveTo(5, 16.5); ctx.lineTo(19, 16.5); ctx.stroke()
                                 } else if (k === "me") {
                                     ctx.beginPath(); ctx.arc(12, 8, 3.8, 0, Math.PI * 2); ctx.stroke()
                                     ctx.beginPath(); ctx.arc(12, 20.5, 7.5, Math.PI, 0, false); ctx.stroke()
@@ -893,7 +894,7 @@ Item {
                             case "aircraft": homeScreen.aircraftClicked(); break
                             case "album":    homeScreen.albumClicked(); break
                             case "capture":  homeScreen.startClicked(); homeScreen.enterApp(); break
-                            case "skypixel": Qt.openUrlExternally(homeScreen.skyPixelUrl); break
+                            case "website":  Qt.openUrlExternally(homeScreen.websiteUrl); break
                             case "me":       meMenu.open(); break
                             }
                         }

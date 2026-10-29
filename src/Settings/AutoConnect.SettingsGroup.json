@@ -8,7 +8,7 @@
     "shortDesc": "Automatically open a connection over UDP",
     "longDesc":  "If this option is enabled GroundControl will automatically connect to a vehicle which is detected on a UDP communication link.",
     "type":             "bool",
-    "default":     false
+    "default":     true
 },
 {
     "name":             "autoConnectPixhawk",
@@ -63,7 +63,7 @@
     "name":             "udpListenPort",
     "shortDesc": "UDP port for autoconnect",
     "type":             "uint32",
-    "default":     14551
+    "default":     14550
 },
 {
     "name":             "udpTargetHostIP",
