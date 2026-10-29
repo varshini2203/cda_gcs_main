@@ -13,6 +13,7 @@ add_library(VideoReceiver
 
 target_link_libraries(VideoReceiver
     PUBLIC
+        Settings    # CDA: GStreamer.h needs VideoSettings.h (src/Settings)
         Qt5::Multimedia
         Qt5::OpenGL
         Qt5::Quick
