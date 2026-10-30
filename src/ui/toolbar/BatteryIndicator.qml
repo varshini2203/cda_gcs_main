@@ -32,6 +32,7 @@ Item {
     property int cellCount: 0
 
     property var _activeVehicle: QGroundControl.multiVehicleManager.activeVehicle
+    property bool _armed:        _activeVehicle ? _activeVehicle.armed : false
 
     Row {
         id:             batteryIndicatorRow
@@ -61,8 +62,21 @@ Item {
         id: batteryVisual
 
         Row {
+            id:             batRow
             anchors.top:    parent.top
             anchors.bottom: parent.bottom
+            spacing:        ScreenTools.defaultFontPixelWidth * 0.4
+
+            property bool armed:        _root._armed
+            property real fcPct:        battery.percentRemaining.rawValue   // % reported by the drone
+            property real volts:        battery.voltage.rawValue            // pack voltage
+            property real _estSmooth:   NaN                                 // % worked out from voltage (smoothed)
+            property real _baseline:    NaN                                 // real % when the drone was armed
+            property real _fcAtArm:     NaN                                 // drone's own % when it was armed
+            property real pct:          computePct()
+            property bool pctValid:     !isNaN(pct)
+            // GREEN 100-60 %, YELLOW 60-30 %, RED 30-0 %
+            property color pctColor:    !pctValid ? qgcPal.text : (pct > 60 ? "#22C55E" : (pct > 30 ? "#FACC15" : "#EF4444"))
 
             function getBatteryColor() {
                 switch (battery.chargeState.rawValue) {
@@ -102,22 +116,73 @@ Item {
                 return 0
             }
 
-            function getBatteryPercentageText() {
-                var dronePct = battery.percentRemaining.rawValue       // percentage reported by the drone
-                var estPct   = voltagePercent(battery.voltage.rawValue) // percentage worked out from pack voltage
-                if (!isNaN(dronePct)) {
-                    // Drone stuck at 100% while the voltage clearly says the pack is not full -> trust the voltage
-                    if (dronePct >= 99.5 && !isNaN(estPct) && estPct < 85) {
-                        return Math.round(estPct) + "%"
+            function clamp(v) {
+                return Math.max(0, Math.min(100, v))
+            }
+
+            function updateEst() {
+                var e = voltagePercent(battery.voltage.rawValue)
+                if (isNaN(e)) {
+                    return
+                }
+                _estSmooth = isNaN(_estSmooth) ? e : (_estSmooth * 0.85 + e * 0.15)
+            }
+
+            // Battery just plugged in / drone on the ground: ArduPilot always starts at 100 % after power-up,
+            // so a half-empty battery also shows 100 %. The pack voltage tells the truth.
+            // If the drone's % and the voltage % agree (smart battery) the drone's value is used.
+            function restingPct() {
+                var est = _estSmooth, fc = fcPct
+                if (isNaN(est)) {
+                    return fc
+                }
+                if (isNaN(fc)) {
+                    return est
+                }
+                return Math.abs(fc - est) <= 10 ? fc : est
+            }
+
+            // In flight: real % at arm time minus what the drone has consumed since then.
+            // Never shows more than the voltage allows (+15 % for voltage sag under load).
+            function computePct() {
+                var est = _estSmooth, fc = fcPct
+                var v
+                if (!armed) {
+                    v = restingPct()
+                } else if (isNaN(fc) || isNaN(_baseline) || isNaN(_fcAtArm)) {
+                    v = isNaN(fc) ? est : fc
+                } else {
+                    v = _baseline - (_fcAtArm - fc)
+                    if (!isNaN(est)) {
+                        v = Math.min(v, est + 15)
                     }
-                    return Math.round(dronePct) + "%"
-                } else if (!isNaN(estPct)) {
-                    return Math.round(estPct) + "%"
-                } else if (battery.chargeState.rawValue !== MAVLink.MAV_BATTERY_CHARGE_STATE_UNDEFINED) {
+                }
+                return isNaN(v) ? NaN : clamp(v)
+            }
+
+            function pctText() {
+                if (pctValid) {
+                    return Math.round(pct) + "%"
+                }
+                if (battery.chargeState.rawValue !== MAVLink.MAV_BATTERY_CHARGE_STATE_UNDEFINED) {
                     return battery.chargeState.enumStringValue
                 }
                 return ""
             }
+
+            onArmedChanged: {
+                if (armed) {
+                    _baseline = restingPct()
+                    _fcAtArm  = fcPct
+                }
+            }
+
+            Connections {
+                target: battery.voltage
+                function onRawValueChanged() { batRow.updateEst() }
+            }
+
+            Component.onCompleted: updateEst()
 
             QGCColoredImage {
                 anchors.top:        parent.top
@@ -126,14 +191,47 @@ Item {
                 sourceSize.width:   width
                 source:             "/qmlimages/Battery.svg"
                 fillMode:           Image.PreserveAspectFit
-                color:              getBatteryColor()
+                color:              batRow.pctColor
             }
 
-            QGCLabel {
-                text:                   getBatteryPercentageText()
-                font.pointSize:         ScreenTools.mediumFontPointSize
-                color:                  getBatteryColor()
+            Column {
                 anchors.verticalCenter: parent.verticalCenter
+                spacing:                ScreenTools.defaultFontPixelHeight * 0.15
+
+                Row {
+                    id:         topRow
+                    spacing:    ScreenTools.defaultFontPixelWidth * 0.8
+
+                    QGCLabel {
+                        text:           batRow.pctText()
+                        font.pointSize: ScreenTools.mediumFontPointSize
+                        color:          batRow.pctColor
+                    }
+
+                    QGCLabel {
+                        visible:                !isNaN(batRow.volts) && batRow.volts > 0
+                        text:                   batRow.volts.toFixed(1) + " V"
+                        font.pointSize:         ScreenTools.smallFontPointSize
+                        color:                  "#B8C7D6"
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                //-- Voltage / charge line (green 100-60, yellow 60-30, red 30-0)
+                Rectangle {
+                    width:      Math.max(topRow.width, ScreenTools.defaultFontPixelWidth * 9)
+                    height:     Math.max(4, ScreenTools.defaultFontPixelHeight * 0.3)
+                    radius:     height / 2
+                    color:      "#40FFFFFF"
+
+                    Rectangle {
+                        width:      batRow.pctValid ? parent.width * batRow.pct / 100 : 0
+                        height:     parent.height
+                        radius:     height / 2
+                        color:      batRow.pctColor
+                        Behavior on width { NumberAnimation { duration: 300 } }
+                    }
+                }
             }
         }
     }
