@@ -17,6 +17,7 @@ import QGroundControl.ScreenTools   1.0
 Item {
     id:         _root
     visible:    true    // Camera view is always available next to the map, even before a stream is configured
+    clip:       true
 
     property Item pipState: videoPipState
     QGCPipState {
@@ -35,7 +36,7 @@ Item {
         }
 
         onStateChanged: {
-            if (pipState.state !== pipState.fullState) {
+            if (videoPipState.state !== videoPipState.fullState) {
                 QGroundControl.videoManager.fullScreen = false
             }
         }

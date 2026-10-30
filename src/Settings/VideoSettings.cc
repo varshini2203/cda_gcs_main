@@ -65,15 +65,22 @@ DECLARE_SETTINGGROUP(Video, "Video")
     _nameToMetaDataMap[videoSourceName]->setEnumInfo(videoSourceList, videoSourceVarList);
 
     const QVariantList removeForceVideoDecodeList{
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_ANDROID)
+        VideoDecoderOptions::ForceVideoDecoderNVIDIA,
+        VideoDecoderOptions::ForceVideoDecoderVAAPI,
         VideoDecoderOptions::ForceVideoDecoderDirectX3D,
         VideoDecoderOptions::ForceVideoDecoderVideoToolbox,
-#endif
-#ifdef Q_OS_WIN
+#elif defined(Q_OS_IOS)
+        VideoDecoderOptions::ForceVideoDecoderNVIDIA,
+        VideoDecoderOptions::ForceVideoDecoderVAAPI,
+        VideoDecoderOptions::ForceVideoDecoderDirectX3D,
+#elif defined(Q_OS_LINUX)
+        VideoDecoderOptions::ForceVideoDecoderDirectX3D,
+        VideoDecoderOptions::ForceVideoDecoderVideoToolbox,
+#elif defined(Q_OS_WIN)
         VideoDecoderOptions::ForceVideoDecoderVAAPI,
         VideoDecoderOptions::ForceVideoDecoderVideoToolbox,
-#endif
-#ifdef Q_OS_MAC
+#elif defined(Q_OS_MAC)
         VideoDecoderOptions::ForceVideoDecoderDirectX3D,
         VideoDecoderOptions::ForceVideoDecoderVAAPI,
 #endif
@@ -136,17 +143,7 @@ DECLARE_SETTINGSFACT_NO_FUNC(VideoSettings, forceVideoDecoder)
     if (!_forceVideoDecoderFact) {
         _forceVideoDecoderFact = _createSettingsFact(forceVideoDecoderName);
 
-        _forceVideoDecoderFact->setVisible(
-#ifdef Q_OS_IOS
-            false
-#else
-#ifdef Q_OS_ANDROID
-            false
-#else
-            true
-#endif
-#endif
-        );
+        _forceVideoDecoderFact->setVisible(true);
 
         connect(_forceVideoDecoderFact, &Fact::valueChanged, this, &VideoSettings::_configChanged);
     }

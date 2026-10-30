@@ -112,6 +112,62 @@ if(WIN32)
                         "Install the GStreamer 1.x MSVC 64-bit runtime AND development installers, "
                         "or set GSTREAMER_1_0_ROOT_MSVC_X86_64.")
     endif()
+elseif(ANDROID)
+    # GStreamer Android universal SDK (gstreamer-1.0-android-universal-1.18.1).
+    # Extract it next to this file, or point GSTREAMER_ROOT_ANDROID (cmake -D or
+    # environment variable) at its top folder (the one containing armv7/arm64/x86/x86_64).
+    if(NOT GSTREAMER_ROOT_ANDROID AND DEFINED ENV{GSTREAMER_ROOT_ANDROID})
+        set(GSTREAMER_ROOT_ANDROID "$ENV{GSTREAMER_ROOT_ANDROID}")
+    endif()
+    if(NOT GSTREAMER_ROOT_ANDROID)
+        set(GSTREAMER_ROOT_ANDROID "${CMAKE_SOURCE_DIR}/gstreamer-1.0-android-universal-1.18.1")
+    endif()
+    file(TO_CMAKE_PATH "${GSTREAMER_ROOT_ANDROID}" GSTREAMER_ROOT_ANDROID)
+
+    if(ANDROID_ABI STREQUAL "armeabi-v7a")
+        set(_GST_ABI_DIR armv7)
+    elseif(ANDROID_ABI STREQUAL "arm64-v8a")
+        set(_GST_ABI_DIR arm64)
+    elseif(ANDROID_ABI STREQUAL "x86_64")
+        set(_GST_ABI_DIR x86_64)
+    else()
+        set(_GST_ABI_DIR x86)
+    endif()
+    set(_GST_ROOT "${GSTREAMER_ROOT_ANDROID}/${_GST_ABI_DIR}")
+
+    if(EXISTS "${_GST_ROOT}/include/gstreamer-1.0/gst/gst.h")
+        set(GST_FOUND TRUE)
+        set(GST_INCLUDE_DIRS
+            ${_GST_ROOT}/include/gstreamer-1.0
+            ${_GST_ROOT}/lib/gstreamer-1.0/include
+            ${_GST_ROOT}/include/glib-2.0
+            ${_GST_ROOT}/lib/glib-2.0/include
+        )
+        link_directories(${_GST_ROOT}/lib/gstreamer-1.0 ${_GST_ROOT}/lib)
+        # Static plugins + dependencies. Order matters for static libraries, so
+        # the whole set is linked inside one --start-group/--end-group block.
+        set(GST_LIBRARIES
+            -Wl,--start-group
+            gstcoreelements gstplayback gstudp gstrtp gstrtsp gstx264 gstlibav
+            gstsdpelem gstvideoparsersbad gstrtpmanager gstisomp4 gstmatroska
+            gstmpegtsdemux gstandroidmedia gstopengl gsttcp
+            graphene-1.0 jpeg png16 gstfft-1.0 gstnet-1.0 gio-2.0
+            gstphotography-1.0 gstgl-1.0 EGL gstaudio-1.0 gstcodecparsers-1.0
+            gstbase-1.0 gstreamer-1.0 gstrtp-1.0 gstpbutils-1.0 gstrtsp-1.0
+            gsttag-1.0 gstvideo-1.0 avformat avcodec avutil x264 avfilter
+            swresample gstriff-1.0 gstcontroller-1.0 gstapp-1.0 gstsdp-1.0 bz2
+            gobject-2.0 gstmpegts-1.0 gmodule-2.0 glib-2.0 orc-0.4 iconv ffi
+            intl m
+            -Wl,--end-group
+            -Wl,--export-dynamic
+        )
+        add_compile_options(-pthread)
+        message(STATUS "GStreamer (Android ${_GST_ABI_DIR}): found at ${_GST_ROOT} (video streaming ENABLED)")
+    else()
+        message(WARNING "GStreamer for Android NOT found at ${_GST_ROOT} - video streaming will be DISABLED. "
+                        "Extract gstreamer-1.0-android-universal-1.18.1 next to CMakeLists.txt "
+                        "or set GSTREAMER_ROOT_ANDROID.")
+    endif()
 else()
     find_package(PkgConfig)
     pkg_check_modules(GST
@@ -205,6 +261,16 @@ include_directories(
 
 add_subdirectory(libs)
 add_subdirectory(src)
+
+# Android: GStreamer.cc / VideoManager.cc register the statically linked GStreamer
+# plugins only when __android__ is defined (qmake defines it for every file).
+if(ANDROID AND GST_FOUND)
+	foreach(_tgt VideoReceiver VideoManager)
+		if(TARGET ${_tgt})
+			target_compile_definitions(${_tgt} PRIVATE __android__)
+		endif()
+	endforeach()
+endif()
 
 set(QGC_RESOURCES
 	qgcresources.qrc

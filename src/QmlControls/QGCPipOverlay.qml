@@ -20,7 +20,7 @@ Item {
     width:      _pipSize
     height:     _pipSize * (9/16)
     z:          pipZOrder + 1
-    visible:    item2 && item2.pipState !== item2.pipState.window && show
+    visible:    !!item2 && item2.pipState.state !== item2.pipState.windowState && show
 
     property var    item1:                  null    // Required
     property var    item2:                  null    // Optional, may come and go
@@ -35,9 +35,10 @@ Item {
     property var    _pipOrWindowItem
     property alias  _windowContentItem: window.contentItem
     property bool   _isExpanded:        true
-    property real   _pipSize:           parent.width * 0.2
+    property real   _pipFraction:       ScreenTools.isMobile ? 0.34 : 0.2
+    property real   _pipSize:           parent.width * _pipFraction
     property real   _maxSize:           0.75                // Percentage of parent control size
-    property real   _minSize:           0.10
+    property real   _minSize:           ScreenTools.isMobile ? 0.25 : 0.10
     property bool   _componentComplete: false
 
     Component.onCompleted: {
@@ -71,7 +72,7 @@ Item {
             _fullItem = item1
             _pipOrWindowItem = null
         }
-        _setPipIsExpanded(QGroundControl.loadBoolGlobalSetting(_pipExpandedSettingsKey, true))
+        _setPipIsExpanded(true)   // Always start with the small view visible so map and camera are both shown
     }
 
     function _swapPip() {
