@@ -26,6 +26,7 @@
 #include "InstrumentValueData.h"
 
 #include <QtQml>
+#include <QCryptographicHash>
 #include <QQmlEngine>
 
 /// @file
@@ -273,6 +274,40 @@ void QGCCorePlugin::setShowAdvancedUI(bool show)
     if (show != _showAdvancedUI) {
         _showAdvancedUI = show;
         emit showAdvancedUIChanged(show);
+    }
+}
+
+// SHA-256 of the admin password. Generate a new one with: echo -n "YourPassword" | sha256sum
+static const char* kAdminPasswordSha256 = "61db4e1030566515bff3d727590799e83074eabcbc070bb1970e4e3d15021c0b";
+
+bool QGCCorePlugin::unlockAdmin(const QString& password)
+{
+    const QString hash = QString::fromLatin1(QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
+    const bool ok = (hash == QLatin1String(kAdminPasswordSha256));
+    if (ok != _adminUnlocked) {
+        _adminUnlocked = ok;
+        emit adminUnlockedChanged();
+    }
+    if (ok) {
+        // Auto-relock after 5 minutes
+        if (!_adminLockTimer) {
+            _adminLockTimer = new QTimer(this);
+            _adminLockTimer->setSingleShot(true);
+            connect(_adminLockTimer, &QTimer::timeout, this, &QGCCorePlugin::lockAdmin);
+        }
+        _adminLockTimer->start(5 * 60 * 1000);
+    }
+    return ok;
+}
+
+void QGCCorePlugin::lockAdmin()
+{
+    if (_adminLockTimer) {
+        _adminLockTimer->stop();
+    }
+    if (_adminUnlocked) {
+        _adminUnlocked = false;
+        emit adminUnlockedChanged();
     }
 }
 

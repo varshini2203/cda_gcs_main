@@ -169,6 +169,10 @@ void FirmwareUpgradeController::flash(AutoPilotStackType_t stackType,
                                       FirmwareBuildType_t firmwareType,
                                       FirmwareVehicleType_t vehicleType)
 {
+    if (!qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qCWarning(FirmwareUpgradeLog) << "Firmware flash blocked: admin lock active";
+        return;
+    }
     qCDebug(FirmwareUpgradeLog) << "FirmwareUpgradeController::flash stackType:firmwareType:vehicleType" << stackType << firmwareType << vehicleType;
     FirmwareIdentifier firmwareId = FirmwareIdentifier(stackType, firmwareType, vehicleType);
     if (_bootloaderFound) {
@@ -183,6 +187,10 @@ void FirmwareUpgradeController::flash(AutoPilotStackType_t stackType,
 
 void FirmwareUpgradeController::flashFirmwareUrl(QString firmwareFlashUrl)
 {
+    if (!qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qCWarning(FirmwareUpgradeLog) << "Firmware flash blocked: admin lock active";
+        return;
+    }
     _firmwareFilename = firmwareFlashUrl;
     if (_bootloaderFound) {
         _downloadFirmware();

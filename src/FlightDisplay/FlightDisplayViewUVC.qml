@@ -14,40 +14,25 @@ import QGroundControl           1.0
 
 Rectangle {
     id:                 _root
-    width:              parent.width
-    height:             parent.height
+    anchors.fill:       parent
     color:              Qt.rgba(0,0,0,0.75)
     clip:               true
-    anchors.centerIn:   parent
-
-    function adjustAspectRatio()
-    {
-        //-- Set aspect ratio
-        var size = camera.viewfinder.resolution
-        if(size.height > 0 && size.width > 0) {
-            var ar = size.width / size.height
-            _root.height = parent.height * ar
-        }
-    }
 
     Camera {
         id:             camera
         deviceId:       QGroundControl.videoManager.videoSourceID
         captureMode:    Camera.CaptureViewfinder
-        onDeviceIdChanged: {
-            adjustAspectRatio()
-        }
-        onCameraStateChanged: {
-            if(camera.cameraStatus === Camera.ActiveStatus) {
-                adjustAspectRatio()
-            }
-        }
     }
     VideoOutput {
         source:         camera
         anchors.fill:   parent
         fillMode:       VideoOutput.PreserveAspectCrop
         visible:        !QGroundControl.videoManager.isGStreamer
+    }
+    Component.onCompleted: {
+        if (visible) {
+            camera.start()
+        }
     }
     onVisibleChanged: {
         if(visible)
