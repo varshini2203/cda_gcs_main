@@ -9,7 +9,7 @@ include_directories(
 
 set(EXTRA_SRC)
 
-if(MOBILE)
+if(MOBILE OR ANDROID)
         list(APPEND EXTRA_SRC
                 MobileScreenMgr.cc
                 MobileScreenMgr.h

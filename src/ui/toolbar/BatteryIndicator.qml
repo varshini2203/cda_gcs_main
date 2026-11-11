@@ -27,10 +27,6 @@ Item {
 
     property bool showIndicator: true
 
-    // CDA: number of LiPo cells in the drone battery (3S = 3, 4S = 4, 6S = 6 ...).
-    // 0 = auto detect (reliable only up to 4S). Set it for 5S / 6S / 12S batteries.
-    property int cellCount: 0
-
     property var _activeVehicle: QGroundControl.multiVehicleManager.activeVehicle
     property bool _armed:        _activeVehicle ? _activeVehicle.armed : false
 
@@ -68,15 +64,24 @@ Item {
             spacing:        ScreenTools.defaultFontPixelWidth * 0.4
 
             property bool armed:        _root._armed
-            property real fcPct:        battery.percentRemaining.rawValue   // % reported by the drone
-            property real volts:        battery.voltage.rawValue            // pack voltage
-            property real _estSmooth:   NaN                                 // % worked out from voltage (smoothed)
-            property real _baseline:    NaN                                 // real % when the drone was armed
-            property real _fcAtArm:     NaN                                 // drone's own % when it was armed
-            property real pct:          computePct()
+
+            // ---- CDA fixed voltage -> % table (pack voltage, drone's own % is NOT used) ----
+            //      21.5 V = 100 %,  16 V = 20 %,  15.5 V = 10 %,  15 V = 0 %
+            readonly property var cdaTable: [[21.5, 100], [16.0, 20], [15.5, 10], [15.0, 0]]
+
+            // ---- Tuning knobs ----
+            readonly property real alphaGround: 0.30    // smoothing on ground (higher = faster)
+            readonly property real alphaFlight: 0.03    // smoothing in flight (lower = steadier, ignores throttle sag)
+            readonly property real groundStep:  2       // on ground, % changes only if difference >= this
+
+            property real _vSmooth:     NaN             // smoothed pack voltage
+            property real _shown:       NaN             // stable % shown on screen
+            property real pct:          _shown
             property bool pctValid:     !isNaN(pct)
-            // GREEN 100-60 %, YELLOW 60-30 %, RED 30-0 %
-            property color pctColor:    !pctValid ? qgcPal.text : (pct > 60 ? "#22C55E" : (pct > 30 ? "#FACC15" : "#EF4444"))
+            property real volts:        _vSmooth
+
+            // GREEN above 50 %, YELLOW 50-20 %, RED 20-0 %
+            property color pctColor:    !pctValid ? qgcPal.text : (pct > 50 ? "#22C55E" : (pct > 20 ? "#FACC15" : "#EF4444"))
 
             function getBatteryColor() {
                 switch (battery.chargeState.rawValue) {
@@ -94,70 +99,60 @@ Item {
                 }
             }
 
-            // LiPo resting voltage per cell -> percent (linear between points)
-            function voltagePercent(packVoltage) {
-                if (isNaN(packVoltage) || packVoltage <= 0) {
+            // Linear interpolation between the CDA table points
+            function voltagePercent(v) {
+                if (isNaN(v) || v < 5) {
                     return NaN
                 }
-                var cells = _root.cellCount > 0 ? _root.cellCount : Math.max(1, Math.ceil(packVoltage / 4.25))
-                var v     = packVoltage / cells
-                var table = [[4.20, 100], [4.15, 95], [4.11, 90], [4.08, 85], [4.02, 80], [3.98, 75], [3.95, 70],
-                             [3.91, 65], [3.87, 60], [3.85, 55], [3.84, 50], [3.82, 45], [3.80, 40], [3.79, 35],
-                             [3.77, 30], [3.75, 25], [3.73, 20], [3.71, 15], [3.69, 10], [3.61, 5], [3.27, 0]]
-                if (v >= table[0][0]) {
+                var t = cdaTable
+                if (v >= t[0][0]) {
                     return 100
                 }
-                for (var i = 1; i < table.length; i++) {
-                    if (v >= table[i][0]) {
-                        var hi = table[i - 1], lo = table[i]
-                        return lo[1] + (v - lo[0]) / (hi[0] - lo[0]) * (hi[1] - lo[1])
+                if (v <= t[t.length - 1][0]) {
+                    return 0
+                }
+                for (var i = 0; i < t.length - 1; i++) {
+                    var hi = t[i], lo = t[i + 1]
+                    if (v <= hi[0] && v >= lo[0]) {
+                        return lo[1] + (v - lo[0]) * (hi[1] - lo[1]) / (hi[0] - lo[0])
                     }
                 }
                 return 0
             }
 
-            function clamp(v) {
-                return Math.max(0, Math.min(100, v))
-            }
+            // Runs once per second (see Timer below)
+            function tick() {
+                var raw = battery.voltage.rawValue
 
-            function updateEst() {
-                var e = voltagePercent(battery.voltage.rawValue)
-                if (isNaN(e)) {
+                // battery unplugged / no valid data -> reset, next plug-in starts fresh
+                if (isNaN(raw) || raw < 5) {
+                    _vSmooth = NaN
+                    _shown   = NaN
                     return
                 }
-                _estSmooth = isNaN(_estSmooth) ? e : (_estSmooth * 0.85 + e * 0.15)
-            }
 
-            // Battery just plugged in / drone on the ground: ArduPilot always starts at 100 % after power-up,
-            // so a half-empty battery also shows 100 %. The pack voltage tells the truth.
-            // If the drone's % and the voltage % agree (smart battery) the drone's value is used.
-            function restingPct() {
-                var est = _estSmooth, fc = fcPct
-                if (isNaN(est)) {
-                    return fc
-                }
-                if (isNaN(fc)) {
-                    return est
-                }
-                return Math.abs(fc - est) <= 10 ? fc : est
-            }
-
-            // In flight: real % at arm time minus what the drone has consumed since then.
-            // Never shows more than the voltage allows (+15 % for voltage sag under load).
-            function computePct() {
-                var est = _estSmooth, fc = fcPct
-                var v
-                if (!armed) {
-                    v = restingPct()
-                } else if (isNaN(fc) || isNaN(_baseline) || isNaN(_fcAtArm)) {
-                    v = isNaN(fc) ? est : fc
+                // 1) smooth the voltage (EMA)
+                if (isNaN(_vSmooth)) {
+                    _vSmooth = raw
                 } else {
-                    v = _baseline - (_fcAtArm - fc)
-                    if (!isNaN(est)) {
-                        v = Math.min(v, est + 15)
+                    var a = armed ? alphaFlight : alphaGround
+                    _vSmooth = _vSmooth * (1 - a) + raw * a
+                }
+
+                var p = voltagePercent(_vSmooth)
+
+                // 2) hysteresis
+                if (isNaN(_shown)) {
+                    _shown = p                                  // first reading
+                } else if (armed) {
+                    if (p < _shown) {                           // in flight: only goes DOWN
+                        _shown = p
+                    }
+                } else {
+                    if (Math.abs(p - _shown) >= groundStep) {   // on ground: ignore small jitter
+                        _shown = p
                     }
                 }
-                return isNaN(v) ? NaN : clamp(v)
             }
 
             function pctText() {
@@ -170,19 +165,13 @@ Item {
                 return ""
             }
 
-            onArmedChanged: {
-                if (armed) {
-                    _baseline = restingPct()
-                    _fcAtArm  = fcPct
-                }
+            Timer {
+                interval:           1000
+                running:            true
+                repeat:             true
+                triggeredOnStart:   true
+                onTriggered:        batRow.tick()
             }
-
-            Connections {
-                target: battery.voltage
-                function onRawValueChanged() { batRow.updateEst() }
-            }
-
-            Component.onCompleted: updateEst()
 
             QGCColoredImage {
                 anchors.top:        parent.top
@@ -217,7 +206,7 @@ Item {
                     }
                 }
 
-                //-- Voltage / charge line (green 100-60, yellow 60-30, red 30-0)
+                //-- Voltage / charge line (green >50, yellow 50-20, red 20-0)
                 Rectangle {
                     width:      Math.max(topRow.width, ScreenTools.defaultFontPixelWidth * 9)
                     height:     Math.max(4, ScreenTools.defaultFontPixelHeight * 0.3)

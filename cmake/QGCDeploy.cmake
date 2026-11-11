@@ -42,8 +42,13 @@ elseif(WIN32)
 elseif(ANDROID)
 	include(AddQtAndroidApk)
 	add_qt_android_apk(QGroundControl.apk QGroundControl
-		PACKAGE_NAME "io.mavlink.qgroundcontrol"
-		#KEYSTORE ${CMAKE_CURRENT_LIST_DIR}/mykey.keystore myalias
-		#KEYSTORE_PASSWORD xxxxx
+		NAME "CDA GCS"
+		PACKAGE_NAME "com.cda.gcs"
+                PACKAGE_SOURCES ${CMAKE_SOURCE_DIR}/android
+		# Increase VERSION_CODE by 1 for every new release you send out
+		VERSION_CODE 1
+		BUILDTOOLS_REVISION "31.0.0"
+		KEYSTORE E:/cda-release.keystore cda
+		KEYSTORE_PASSWORD cda123456
 	)
 endif()

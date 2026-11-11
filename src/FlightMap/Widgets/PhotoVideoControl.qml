@@ -152,6 +152,7 @@ Rectangle {
     property real   _btnSize:           ScreenTools.defaultFontPixelHeight * 3
     property bool   _isRecordingVideo:  _mavlinkCamera ? (_mavlinkCameraInVideoMode && _mavlinkCameraVideoIsRecording) : _videoStreamRecording
     property bool   _photoBusy:         !_simplePhotoCaptureIsIdle || (_mavlinkCamera ? (_mavlinkCameraInPhotoMode && !_mavlinkCameraPhotoCaptureIsIdle) : false)
+    property bool   _cameraSettingsAvailable:   !!_mavlinkCamera || _anyVideoStreamAvailable   // gear shown for MAVLink camera OR video stream
     property real   _recStartMs:        0
     property int    _recSeconds:        0
     property string _recTimeText:       _mavlinkCamera ? (_isRecordingVideo ? _mavlinkCamera.recordTimeStr : "00:00:00") : _fmtTime(_recSeconds)
@@ -330,24 +331,47 @@ Rectangle {
                     }
                 }
 
-                //-- camera settings (only for a real MAVLink camera)
-                QGCColoredImage {
-                    visible:                !!_mavlinkCamera
-                    anchors.verticalCenter: parent.verticalCenter
-                    source:                 "/res/gear-black.svg"
-                    mipmap:                 true
-                    height:                 ScreenTools.defaultFontPixelHeight * 1.2
-                    width:                  height
-                    sourceSize.height:      height
-                    color:                  "white"
-                    fillMode:               Image.PreserveAspectFit
+                //-- CAMERA SETTINGS (alteration of camera settings: exposure / ISO / white balance / resolution /
+                //   photo mode / time-lapse / grid lines / screen fit / reset) - same round style as Photo and Record
+                Column {
+                    visible:        _cameraSettingsAvailable
+                    spacing:        ScreenTools.defaultFontPixelHeight * 0.2
 
-                    QGCMouseArea {
-                        fillItem:   parent
-                        onClicked:  {
-                            _touched()
-                            mainWindow.showPopupDialogFromComponent(settingsDialogComponent)
+                    Rectangle {
+                        width:                      _btnSize * 0.9
+                        height:                     width
+                        radius:                     width / 2
+                        anchors.horizontalCenter:   parent.horizontalCenter
+                        color:                      settingsArea.pressed ? "#4038BDF8" : "#1AFFFFFF"
+                        border.color:               _cdaAccent
+                        border.width:               2
+
+                        QGCColoredImage {
+                            anchors.centerIn:   parent
+                            width:              parent.width * 0.5
+                            height:             width
+                            source:             "/res/gear-black.svg"
+                            mipmap:             true
+                            sourceSize.height:  height
+                            fillMode:           Image.PreserveAspectFit
+                            color:              "white"
                         }
+
+                        MouseArea {
+                            id:             settingsArea
+                            anchors.fill:   parent
+                            onClicked: {
+                                _touched()
+                                mainWindow.showPopupDialogFromComponent(settingsDialogComponent)
+                            }
+                        }
+                    }
+
+                    QGCLabel {
+                        anchors.horizontalCenter:   parent.horizontalCenter
+                        color:                      "white"
+                        font.pointSize:             ScreenTools.smallFontPointSize
+                        text:                       qsTr("Settings")
                     }
                 }
             }
@@ -413,7 +437,7 @@ Rectangle {
         id: settingsDialogComponent
 
         QGCPopupDialog {
-            title:      qsTr("Settings")
+            title:      qsTr("Camera Settings")
             buttons:    StandardButton.Close
 
             ColumnLayout {
