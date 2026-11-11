@@ -82,9 +82,6 @@ Item {
                 if (_root.pipState.state !== _root.pipState.fullState) {
                     return qsTr("NO CAMERA")
                 }
-                if (!QGroundControl.videoManager.gstreamerAvailable && !QGroundControl.videoManager.uvcEnabled) {
-                    return qsTr("NO DRONE CAMERA\nThis build has no video support (GStreamer not found). Install GStreamer (MSVC 64-bit) and rebuild, or plug in a USB camera.")
-                }
                 return qsTr("NO DRONE CAMERA\nSet the Video Source in Application Settings > General > Video\n(UDP h.264 port 5600 is the usual drone default)")
             }
         }

@@ -458,7 +458,7 @@ ApplicationWindow {
                 spacing:        0
 
                 QGCLabel {
-                    text:                   qsTr("%1 Version").arg(QGroundControl.appName)
+                    text:                   qsTr("Chennai Drone Academy")
                     font.pointSize:         ScreenTools.smallFontPointSize
                     wrapMode:               QGCLabel.WordWrap
                     Layout.maximumWidth:    parent.width

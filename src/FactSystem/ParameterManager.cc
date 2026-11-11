@@ -17,6 +17,7 @@
 #include "JsonHelper.h"
 #include "ComponentInformationManager.h"
 #include "CompInfoParam.h"
+#include "QGCCorePlugin.h"
 
 #include <QEasingCurve>
 #include <QFile>
@@ -736,6 +737,11 @@ void ParameterManager::_readParameterRaw(int componentId, const QString& paramNa
 
 void ParameterManager::_sendParamSetToVehicle(int componentId, const QString& paramName, FactMetaData::ValueType_t valueType, const QVariant& value)
 {
+    if (!qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qCWarning(ParameterManagerLog) << "Parameter write blocked: admin lock active" << paramName;
+        return;
+    }
+
     WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
 
     if (!weakLink.expired()) {

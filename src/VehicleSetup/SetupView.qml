@@ -38,6 +38,9 @@ Rectangle {
     property string _messagePanelText:              qsTr("missing message panel text")
     property bool   _fullParameterVehicleAvailable: QGroundControl.multiVehicleManager.parameterReadyVehicleAvailable && !QGroundControl.multiVehicleManager.activeVehicle.parameterManager.missingParameters
     property var    _corePlugin:                    QGroundControl.corePlugin
+    property bool   _adminUnlocked:                 QGroundControl.corePlugin.adminUnlocked
+
+    on_AdminUnlockedChanged: _showSummaryPanel()
 
     function showSummaryPanel() {
         if (mainWindow.preventViewSwitch()) {
@@ -47,7 +50,9 @@ Rectangle {
     }
 
     function _showSummaryPanel() {
-        if (_fullParameterVehicleAvailable) {
+        if (QGroundControl.multiVehicleManager.parameterReadyVehicleAvailable && !_adminUnlocked) {
+            panelLoader.setSourceComponent(lockedSummaryComponent)
+        } else if (_fullParameterVehicleAvailable) {
             if (QGroundControl.multiVehicleManager.activeVehicle.autopilot.vehicleComponents.length === 0) {
                 panelLoader.setSourceComponent(noComponentsVehicleSummaryComponent)
             } else {
@@ -105,6 +110,7 @@ Rectangle {
     Connections {
         target: QGroundControl.multiVehicleManager
         onParameterReadyVehicleAvailableChanged: {
+            QGroundControl.corePlugin.lockAdmin()
             if(!QGroundControl.skipSetupPage) {
                 if (QGroundControl.multiVehicleManager.parameterReadyVehicleAvailable || summaryButton.checked || setupButtonGroup.current != firmwareButton) {
                     // Show/Reload the Summary panel when:
@@ -113,6 +119,66 @@ Rectangle {
                     //      The active vehicle goes away and we are not on the Firmware panel.
                     summaryButton.checked = true
                     _showSummaryPanel()
+                }
+            }
+        }
+    }
+
+    Component {
+        id: lockedSummaryComponent
+        Rectangle {
+            color: qgcPal.windowShade
+            QGCLabel {
+                anchors.margins:        _defaultTextWidth * 2
+                anchors.fill:           parent
+                verticalAlignment:      Text.AlignVCenter
+                horizontalAlignment:    Text.AlignHCenter
+                wrapMode:               Text.WordWrap
+                font.pointSize:         ScreenTools.mediumFontPointSize
+                text:                   qsTr("Vehicle setup, parameters and firmware are locked. Admin unlock is required.")
+            }
+        }
+    }
+
+    Component {
+        id: adminUnlockDialogComponent
+
+        QGCPopupDialog {
+            id:         adminDlg
+            title:      qsTr("Admin Unlock")
+            buttons:    StandardButton.Cancel | StandardButton.Ok
+
+            function accept() {
+                if (QGroundControl.corePlugin.unlockAdmin(passwordField.text)) {
+                    hideDialog()
+                } else {
+                    errorLabel.visible = true
+                    passwordField.text = ""
+                }
+            }
+
+            ColumnLayout {
+                spacing: ScreenTools.defaultDialogControlSpacing
+
+                QGCLabel {
+                    Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 40
+                    wrapMode:               Text.WordWrap
+                    text:                   qsTr("Setup, Parameters and Firmware are locked. Enter the admin password.")
+                }
+
+                QGCTextField {
+                    id:                 passwordField
+                    Layout.fillWidth:   true
+                    echoMode:           TextInput.Password
+                    focus:              true
+                    onAccepted:         adminDlg.accept()
+                }
+
+                QGCLabel {
+                    id:         errorLabel
+                    visible:    false
+                    color:      "red"
+                    text:       qsTr("Wrong password.")
                 }
             }
         }
@@ -148,7 +214,7 @@ Rectangle {
                 wrapMode:               Text.WordWrap
                 font.pointSize:         ScreenTools.largeFontPointSize
                 text:                   qsTr("Vehicle settings and info will display after connecting your vehicle.") +
-                                        (ScreenTools.isMobile || !_corePlugin.options.showFirmwareUpgrade ? "" : " Click Firmware on the left to upgrade your vehicle.")
+                                        (ScreenTools.isMobile || !_adminUnlocked || !_corePlugin.options.showFirmwareUpgrade ? "" : " Click Firmware on the left to upgrade your vehicle.")
 
                 onLinkActivated: Qt.openUrlExternally(link)
             }
@@ -239,7 +305,7 @@ Rectangle {
                 imageResource:      "/qmlimages/FirmwareUpgradeIcon.png"
                 setupIndicator:     false
                 exclusiveGroup:     setupButtonGroup
-                visible:            !ScreenTools.isMobile && _corePlugin.options.showFirmwareUpgrade
+                visible:            _adminUnlocked && !ScreenTools.isMobile && _corePlugin.options.showFirmwareUpgrade
                 text:               qsTr("Firmware")
                 Layout.fillWidth:   true
 
@@ -277,7 +343,7 @@ Rectangle {
                     setupComplete:      modelData.setupComplete
                     exclusiveGroup:     setupButtonGroup
                     text:               modelData.name
-                    visible:            modelData.setupSource.toString() !== ""
+                    visible:            _adminUnlocked && modelData.setupSource.toString() !== ""
                     Layout.fillWidth:   true
                     onClicked:          showVehicleComponentPanel(modelData)
                 }
@@ -286,12 +352,25 @@ Rectangle {
             SubMenuButton {
                 setupIndicator:     false
                 exclusiveGroup:     setupButtonGroup
-                visible:            QGroundControl.multiVehicleManager.parameterReadyVehicleAvailable &&
+                visible:            _adminUnlocked &&
+                                    QGroundControl.multiVehicleManager.parameterReadyVehicleAvailable &&
                                     !QGroundControl.multiVehicleManager.activeVehicle.usingHighLatencyLink &&
                                     _corePlugin.showAdvancedUI
                 text:               qsTr("Parameters")
                 Layout.fillWidth:   true
                 onClicked:          showPanel(this, "SetupParameterEditor.qml")
+            }
+
+            QGCButton {
+                text:               _adminUnlocked ? qsTr("Admin Lock") : qsTr("Admin Unlock")
+                Layout.fillWidth:   true
+                onClicked: {
+                    if (_adminUnlocked) {
+                        QGroundControl.corePlugin.lockAdmin()
+                    } else {
+                        mainWindow.showPopupDialogFromComponent(adminUnlockDialogComponent)
+                    }
+                }
             }
 
         }

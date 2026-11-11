@@ -26,15 +26,21 @@ Rectangle {
     readonly property real _defaultTextWidth:   ScreenTools.defaultFontPixelWidth
     readonly property real _horizontalMargin:   _defaultTextWidth / 2
     readonly property real _verticalMargin:     _defaultTextHeight / 2
-    readonly property real _buttonHeight:       ScreenTools.isTinyScreen ? ScreenTools.defaultFontPixelHeight * 3 : ScreenTools.defaultFontPixelHeight * 2.6
+    readonly property real _buttonHeight:       _short ? ScreenTools.defaultFontPixelHeight * 2.3 : (ScreenTools.isTinyScreen ? ScreenTools.defaultFontPixelHeight * 3 : ScreenTools.defaultFontPixelHeight * 2.6)
     readonly property bool _compact:            ScreenTools.isMobile || width < _defaultTextWidth * 110
     readonly property real _sidebarWidth:       _compact ? 0 : _defaultTextWidth * 24
     readonly property bool _short:              height > 0 && height < _defaultTextHeight * 34     // landscape phone: very little vertical room
-    readonly property real _bannerFullHeight:   _defaultTextHeight * (_short ? 2.8 : (_compact ? 3.4 : 4.6))
+    readonly property real _bannerFullHeight:   _defaultTextHeight * (_short ? 2.4 : (_compact ? 3.4 : 4.6))
     readonly property real _bannerTopGap:       _defaultTextHeight * (_short ? 0.3 : 0.8)
     readonly property real _bannerBlock:        _bannerTopGap + _bannerFullHeight + _verticalMargin
-    property var  _innerFlick:                  null
-    readonly property real _bannerScrollY:      _innerFlick ? -(_innerFlick.contentY - _innerFlick.originY + _innerFlick.topMargin) : 0
+
+    // Extra space kept free on the right edge of the page. On phones the Android navigation bar can cover the
+    // last few millimetres of the window, which cut off buttons, cards and the banner. Increase if still clipped.
+    readonly property real _rightInset:         ScreenTools.isMobile ? _defaultTextWidth * 5 : 0
+
+    // A page sets this while one of its edit forms is open so the banner can get out of the way on short screens
+    property bool formMode:                     false
+    readonly property bool _bannerVisible:      !(formMode && _short)
     readonly property string _iconBase:         "qrc:/qml/SettingsIcons/"
 
     // CDA colours
@@ -74,48 +80,6 @@ Rectangle {
             __rightPanel.source = page.url
         }
         _currentTitle = page.title
-    }
-
-    function _findFlickable(item) {
-        if (!item) {
-            return null
-        }
-        var kids = item.children
-        for (var i = 0; i < kids.length; i++) {
-            var c = kids[i]
-            if (c.visible === false) {
-                continue
-            }
-            if (c.contentY !== undefined && c.flickableDirection !== undefined) {
-                return c
-            }
-            var f = _findFlickable(c)
-            if (f) {
-                return f
-            }
-        }
-        return null
-    }
-
-    function _attachFlickable() {
-        _innerFlick = _findFlickable(__rightPanel.item)
-        if (_innerFlick) {
-            _innerFlick.interactive = true
-        }
-    }
-
-    Binding {
-        target:     settingsView._innerFlick
-        property:   "topMargin"
-        value:      settingsView._bannerBlock
-        when:       settingsView._innerFlick !== null
-    }
-
-    Timer {
-        id:             findFlickTimer
-        interval:       400
-        repeat:         false
-        onTriggered:    settingsView._attachFlickable()
     }
 
     function _subtitleFor(title) {
@@ -318,7 +282,7 @@ Rectangle {
             id:                 tabFlick
             anchors.fill:       parent
             anchors.leftMargin: _horizontalMargin
-            anchors.rightMargin:_horizontalMargin
+            anchors.rightMargin:_horizontalMargin + _rightInset
             contentWidth:       tabRow.width
             contentHeight:      height
             flickableDirection: Flickable.HorizontalFlick
@@ -382,13 +346,15 @@ Rectangle {
         anchors.bottom:     parent.bottom
         anchors.left:       _compact ? parent.left : sidebar.right
         anchors.right:      parent.right
+        anchors.rightMargin:_rightInset
         clip:               true
 
         //-- Page header banner
         Rectangle {
             id:                     pageHeader
             z:                      2
-            y:                      _bannerTopGap + _bannerScrollY
+            visible:                _bannerVisible
+            y:                      _bannerTopGap
             anchors.left:           parent.left
             anchors.leftMargin:     _defaultTextWidth * (_compact ? 1.5 : 3)
             anchors.right:          parent.right
@@ -509,13 +475,14 @@ Rectangle {
 
                 QGCLabel {
                     width:              parent.width
-                    text:               qsTr("Application Settings")
+                    text:               _short ? _currentTitle : qsTr("Application Settings")
                     color:              _headingColor
                     font.bold:          true
-                    font.pointSize:     _compact ? ScreenTools.largeFontPointSize : ScreenTools.largeFontPointSize * 1.2
+                    font.pointSize:     _short ? ScreenTools.mediumFontPointSize : (_compact ? ScreenTools.largeFontPointSize : ScreenTools.largeFontPointSize * 1.2)
                     elide:              Text.ElideRight
                 }
                 QGCLabel {
+                    visible:            !_short
                     width:              parent.width
                     text:               _currentTitle === "" ? "" : _currentTitle + "  \u2022  " + _subtitleFor(_currentTitle)
                     color:              "#5a6f8f"
@@ -530,18 +497,13 @@ Rectangle {
             id:                     __rightPanel
             anchors.leftMargin:     _defaultTextWidth * (_compact ? 1 : 2)
             anchors.rightMargin:    _defaultTextWidth * (_compact ? 1 : 2)
-            anchors.topMargin:      _innerFlick ? 0 : _bannerBlock
+            anchors.topMargin:      _bannerVisible ? _verticalMargin : 0
             anchors.bottomMargin:   _verticalMargin
             clip:                   true
             anchors.left:           parent.left
             anchors.right:          parent.right
-            anchors.top:            parent.top
+            anchors.top:            _bannerVisible ? pageHeader.bottom : parent.top
             anchors.bottom:         parent.bottom
-            onLoaded: {
-                settingsView._innerFlick = null
-                settingsView._attachFlickable()
-                findFlickTimer.restart()
-            }
         }
     }
 }

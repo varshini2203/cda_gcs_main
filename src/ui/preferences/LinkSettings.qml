@@ -33,17 +33,15 @@ Rectangle {
         colorGroupEnabled:  enabled
     }
 
-    // The page banner (AppSettings.qml) floats over the top of the settings content area.
-    // This is how far down from the top of this page the banner ends, wherever this page sits.
-    readonly property real _bannerClearance: {
-        var banner  = (typeof settingsView !== "undefined" && settingsView) ? settingsView._bannerBlock : 0
-        var pageTop = (parent ? parent.y : 0) + y
-        return Math.max(0, banner - pageTop)
+    // Let the page banner (AppSettings.qml) step aside while a form is open on a short (phone) screen
+    function _setFormMode(open) {
+        if (typeof settingsView !== "undefined" && settingsView) {
+            settingsView.formMode = open
+        }
     }
+    Component.onDestruction: _setFormMode(false)
 
     function openCommSettings(lconf) {
-        // Bring the banner back to its resting position before the form opens
-        linkFlick.contentY = linkFlick.originY - linkFlick.topMargin
         settingLoader.linkConfig = lconf
         settingLoader.sourceComponent = commSettings
         settingLoader.visible = true
@@ -320,8 +318,8 @@ Rectangle {
     Loader {
         id:                 settingLoader
         anchors.fill:       parent
-        anchors.topMargin:  _linkRoot._bannerClearance            // keep the form clear of the page banner
-        visible:        false
+        visible:            false
+        onVisibleChanged:   _linkRoot._setFormMode(visible)
         property var linkConfig: null
         property var editConfig: null
     }
@@ -334,7 +332,7 @@ Rectangle {
             id:             settingsRect
             color:          "#f3f7fc"
             anchors.fill:   parent
-            property real   _panelWidth:    width * 0.8
+            property real   _panelWidth:    Math.min(width * 0.96, ScreenTools.defaultFontPixelWidth * 90)
             Component.onCompleted: {
                 // If editing, create copy for editing
                 if(linkConfig) {
@@ -555,6 +553,10 @@ Rectangle {
                             }
                         }
                     }
+                    Item {
+                        height: ScreenTools.defaultFontPixelHeight * 2
+                        width:  parent.width
+                    }
                 }
             }
             Row {
@@ -565,6 +567,9 @@ Rectangle {
                 anchors.right:      parent.right
                 CDAButton {
                     width:      ScreenTools.defaultFontPixelWidth * 10
+                    heightFactor:   0.4
+                    pointSize:      ScreenTools.smallFontPointSize
+                    primary:        true
                     text:       qsTr("OK")
                     enabled:    nameField.text !== ""
                     onClicked: {
@@ -585,6 +590,8 @@ Rectangle {
                 }
                 CDAButton {
                     width:      ScreenTools.defaultFontPixelWidth * 10
+                    heightFactor:   0.4
+                    pointSize:      ScreenTools.smallFontPointSize
                     text:       qsTr("Cancel")
                     onClicked: {
                         QGroundControl.linkManager.cancelConfigurationEditing(editConfig)

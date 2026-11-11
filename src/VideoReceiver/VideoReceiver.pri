@@ -63,9 +63,9 @@ LinuxBuild {
     }
 } else:AndroidBuild {
     #- gstreamer assumed to be installed in $$PWD/../../gstreamer-1.0-android-universal-1.18.1/***
-    contains(QT_ARCH, arm) {
+    contains(ANDROID_ABIS, armeabi-v7a) {
         GST_ROOT = $$PWD/../../gstreamer-1.0-android-universal-1.18.1/armv7
-    } else:contains(QT_ARCH, arm64) {
+    } else:contains(ANDROID_ABIS, arm64-v8a) {
         GST_ROOT = $$PWD/../../gstreamer-1.0-android-universal-1.18.1/arm64
     } else {
         GST_ROOT = $$PWD/../../gstreamer-1.0-android-universal-1.18.1/x86
