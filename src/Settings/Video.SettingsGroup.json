@@ -23,7 +23,7 @@
     "shortDesc": "Video RTSP Url",
     "longDesc":  "RTSP url address and port to bind to for video stream. Example: rtsp://192.168.42.1:554/live",
     "type":             "string",
-    "default":     ""
+    "default":     "rtsp://192.168.144.108:554/stream=0"
 },
 {
     "name":             "tcpUrl",
@@ -127,7 +127,7 @@
     "shortDesc": "Tweaks video for lower latency",
     "longDesc":  "If this option is enabled, the rtpjitterbuffer is removed and the video sink is set to assynchronous mode, reducing the latency by about 200 ms.",
     "type":             "bool",
-    "default":     false
+    "default":     true
 },
 {
     "name":             "forceVideoDecoder",

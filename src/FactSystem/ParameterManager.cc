@@ -441,6 +441,12 @@ void ParameterManager::_factRawValueUpdated(const QVariant& rawValue)
         return;
     }
 
+    if (!qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qCWarning(ParameterManagerLog) << "Parameter write blocked: admin lock active" << fact->name();
+        refreshParameter(fact->componentId(), fact->name());   // restore vehicle value
+        return;
+    }
+
     _factRawValueUpdateWorker(fact->componentId(), fact->name(), fact->type(), rawValue);
 }
 

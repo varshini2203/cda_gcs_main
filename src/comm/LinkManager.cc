@@ -40,6 +40,7 @@
 QGC_LOGGING_CATEGORY(LinkManagerLog, "LinkManagerLog")
 QGC_LOGGING_CATEGORY(LinkManagerVerboseLog, "LinkManagerVerboseLog")
 
+const char* LinkManager::_g12LinkName =                "G12-H DataLink";
 const char* LinkManager::_defaultUDPLinkName =       "UDP Link (AutoConnect)";
 const char* LinkManager::_mavlinkForwardingLinkName =       "MAVLink Forwarding Link";
 
@@ -390,6 +391,28 @@ void LinkManager::_addUDPAutoConnectLink(void)
     }
 }
 
+void LinkManager::_addG12AutoConnectLink(void)
+{
+#ifdef __mobile__
+    // Skydroid G12-H: the on-board DeviceHelper bridges the receiver's data link to
+    // 127.0.0.1:14552 and sends MAVLink to local UDP port 14551.
+    for (int i = 0; i < _rgLinks.count(); i++) {
+        SharedLinkConfigurationPtr linkConfig = _rgLinks[i]->linkConfiguration();
+        if (linkConfig->type() == LinkConfiguration::TypeUdp && linkConfig->name() == _g12LinkName) {
+            return;
+        }
+    }
+
+    qCDebug(LinkManagerLog) << "New G12-H data link added";
+    UDPConfiguration* udpConfig = new UDPConfiguration(_g12LinkName);
+    udpConfig->setDynamic(true);
+    udpConfig->setLocalPort(14551);
+    udpConfig->addHost(QStringLiteral("127.0.0.1"), 14552);
+    SharedLinkConfigurationPtr config = addConfiguration(udpConfig);
+    createConnectedLink(config);
+#endif
+}
+
 void LinkManager::_addMAVLinkForwardingLink(void)
 {
     if (_toolbox->settingsManager()->appSettings()->forwardMavlink()->rawValue().toBool()) {
@@ -426,6 +449,7 @@ void LinkManager::_updateAutoConnectLinks(void)
     }
 
     _addUDPAutoConnectLink();
+    _addG12AutoConnectLink();
     _addMAVLinkForwardingLink();
 
 #ifndef __mobile__

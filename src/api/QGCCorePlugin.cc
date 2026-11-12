@@ -27,6 +27,8 @@
 
 #include <QtQml>
 #include <QCryptographicHash>
+#include <QPasswordDigestor>
+#include <QDateTime>
 #include <QQmlEngine>
 
 /// @file
@@ -277,25 +279,61 @@ void QGCCorePlugin::setShowAdvancedUI(bool show)
     }
 }
 
-// SHA-256 of the admin password. Generate a new one with: echo -n "YourPassword" | sha256sum
-static const char* kAdminPasswordSha256 = "61db4e1030566515bff3d727590799e83074eabcbc070bb1970e4e3d15021c0b";
+// Admin password: PBKDF2-HMAC-SHA256. Generate new values with: python tools/cda_admin_hash.py
+static const int   kAdminPbkdf2Iterations = 200000;
+static const char* kAdminSaltHex          = "e973788c50cf86f1b955f980767b73c0";
+static const char* kAdminHashHex          = "f54a6767dd7ad5a03222286b32efdb75cef545906816e0ea1f35677628c3d8b1";
+static const int   kAdminMaxFailedAttempts = 5;
+static const int   kAdminLockoutSeconds    = 120;
+static const int   kAdminSessionSeconds    = 5 * 60;
+
+int QGCCorePlugin::adminLockoutSecondsRemaining() const
+{
+    const qint64 left = _adminLockedUntilMSecs - QDateTime::currentMSecsSinceEpoch();
+    return left > 0 ? static_cast<int>((left + 999) / 1000) : 0;
+}
 
 bool QGCCorePlugin::unlockAdmin(const QString& password)
 {
-    const QString hash = QString::fromLatin1(QCryptographicHash::hash(password.toUtf8(), QCryptographicHash::Sha256).toHex());
-    const bool ok = (hash == QLatin1String(kAdminPasswordSha256));
+    if (adminLockoutSecondsRemaining() > 0) {
+        return false;
+    }
+
+    const QByteArray salt     = QByteArray::fromHex(kAdminSaltHex);
+    const QByteArray expected = QByteArray::fromHex(kAdminHashHex);
+    const QByteArray got      = QPasswordDigestor::deriveKeyPbkdf2(QCryptographicHash::Sha256,
+                                                              password.toUtf8(),
+                                                              salt,
+                                                              kAdminPbkdf2Iterations,
+                                                              static_cast<quint64>(expected.size()));
+    bool ok = !expected.isEmpty() && got.size() == expected.size();
+    if (ok) {
+        quint8 diff = 0;
+        for (int i = 0; i < expected.size(); ++i) {
+            diff |= static_cast<quint8>(got[i]) ^ static_cast<quint8>(expected[i]);
+        }
+        ok = (diff == 0);
+    }
+
+    if (ok) {
+        _adminFailedAttempts   = 0;
+        _adminLockedUntilMSecs = 0;
+    } else if (++_adminFailedAttempts >= kAdminMaxFailedAttempts) {
+        _adminFailedAttempts   = 0;
+        _adminLockedUntilMSecs = QDateTime::currentMSecsSinceEpoch() + static_cast<qint64>(kAdminLockoutSeconds) * 1000;
+    }
+
     if (ok != _adminUnlocked) {
         _adminUnlocked = ok;
         emit adminUnlockedChanged();
     }
     if (ok) {
-        // Auto-relock after 5 minutes
         if (!_adminLockTimer) {
             _adminLockTimer = new QTimer(this);
             _adminLockTimer->setSingleShot(true);
             connect(_adminLockTimer, &QTimer::timeout, this, &QGCCorePlugin::lockAdmin);
         }
-        _adminLockTimer->start(5 * 60 * 1000);
+        _adminLockTimer->start(kAdminSessionSeconds * 1000);
     }
     return ok;
 }
@@ -485,8 +523,8 @@ const QVariantList& QGCCorePlugin::toolBarIndicators(void)
     //-- Default list of indicators for all vehicles.
     if(_toolBarIndicatorList.size() == 0) {
         _toolBarIndicatorList = QVariantList({
-                                                 QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/GPSRTKIndicator.qml")),
-                                             });
+            QVariant::fromValue(QUrl::fromUserInput("qrc:/toolbar/GPSRTKIndicator.qml")),
+        });
     }
     return _toolBarIndicatorList;
 }

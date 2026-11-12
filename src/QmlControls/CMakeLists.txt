@@ -1,4 +1,3 @@
-
 add_library(QmlControls
 	AppMessages.cc
 	AppMessages.h
@@ -143,4 +142,3 @@ target_link_libraries(QmlControls
 )
 
 target_include_directories(QmlControls INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-

@@ -182,8 +182,12 @@ public class QGCActivity extends QtActivity
     private static native void nativeUpdateAvailableJoysticks();
 
     // Native C++ functions called to log output
-    public static native void qgcLogDebug(String message);
-    public static native void qgcLogWarning(String message);
+    public static void qgcLogDebug(String message) {
+        Log.d(TAG, message);
+    }
+    public static void qgcLogWarning(String message) {
+        Log.w(TAG, message);
+    }
 
     public native void nativeInit();
 
@@ -763,4 +767,3 @@ public class QGCActivity extends QtActivity
         }).start();
     }
 }
-
