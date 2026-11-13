@@ -251,7 +251,19 @@ bool UDPLink::_hardwareConnect()
     QHostAddress host = QHostAddress::AnyIPv4;
     _socket = new QUdpSocket(this);
     _socket->setProxy(QNetworkProxy::NoProxy);
-    _connectState = _socket->bind(host, _udpConfig->localPort(), QAbstractSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+    // Retry a few times: another app may still be releasing the port.
+    static const int kBindAttempts = 5;
+    for (int attempt = 1; attempt <= kBindAttempts && _running; attempt++) {
+        _connectState = _socket->bind(host, _udpConfig->localPort(), QAbstractSocket::ReuseAddressHint | QUdpSocket::ShareAddress);
+        if (_connectState) {
+            break;
+        }
+        qWarning() << "UDP bind failed on port" << _udpConfig->localPort() << "attempt" << attempt << "of" << kBindAttempts << ":" << _socket->errorString();
+        _socket->close();
+        if (attempt < kBindAttempts) {
+            msleep(1000);
+        }
+    }
     if (_connectState) {
         _socket->joinMulticastGroup(QHostAddress("224.0.0.1"));
         //-- Make sure we have a large enough IO buffers
@@ -266,7 +278,7 @@ bool UDPLink::_hardwareConnect()
         QObject::connect(_socket, &QUdpSocket::readyRead, this, &UDPLink::readBytes);
         emit connected();
     } else {
-        emit communicationError(tr("UDP Link Error"), tr("Error binding UDP port: %1").arg(_socket->errorString()));
+        emit communicationError(tr("UDP Link Error"), tr("Error binding UDP port %1: %2. Another ground station app may be using it. Close it and try again.").arg(_udpConfig->localPort()).arg(_socket->errorString()));
     }
     return _connectState;
 }

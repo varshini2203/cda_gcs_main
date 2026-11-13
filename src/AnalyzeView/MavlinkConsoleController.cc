@@ -10,6 +10,8 @@
 #include "MavlinkConsoleController.h"
 #include "QGCApplication.h"
 #include "UAS.h"
+#include "QGCCorePlugin.h"
+#include "QGCToolbox.h"
 
 #include <QClipboard>
 
@@ -32,6 +34,10 @@ MavlinkConsoleController::~MavlinkConsoleController()
 void
 MavlinkConsoleController::sendCommand(QString command)
 {
+    if (!qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qWarning() << "MAVLink console blocked: admin lock active";
+        return;
+    }
     // there might be multiple commands, add them separately to the history
     QStringList lines = command.split('\n');
     for (int i = 0; i < lines.size(); ++i) {
@@ -130,6 +136,10 @@ MavlinkConsoleController::_receiveData(uint8_t device, uint8_t, uint16_t, uint32
 void
 MavlinkConsoleController::_sendSerialData(QByteArray data, bool close)
 {
+    if (!data.isEmpty() && !qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qWarning() << "MAVLink console blocked: admin lock active";
+        return;
+    }
     if (!_vehicle) {
         qWarning() << "Internal error";
         return;

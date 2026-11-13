@@ -146,6 +146,7 @@ private:
     void                _fixUnnamed                 (LinkConfiguration* config);
     void                _removeConfiguration        (LinkConfiguration* config);
     void                _addUDPAutoConnectLink      (void);
+    void                _addG12AutoConnectLink      (void);
     void                _addMAVLinkForwardingLink   (void);
     void                _freeMavlinkChannel         (int channel);
     bool                _isSerialPortConnected      (void);
@@ -188,6 +189,7 @@ private:
 #endif
 
     static const char*  _defaultUDPLinkName;
+    static const char*  _g12LinkName;
     static const char*  _mavlinkForwardingLinkName;
     static const int    _autoconnectUpdateTimerMSecs;
     static const int    _autoconnectConnectDelayMSecs;

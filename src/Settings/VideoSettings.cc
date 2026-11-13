@@ -99,10 +99,9 @@ void VideoSettings::_setDefaults()
     if (_noVideo) {
         _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoSourceNoVideo);
     } else {
-#if defined(QGC_GST_STREAMING) && !defined(NO_UDP_VIDEO)
-        // Most drones / companion computers stream H.264 to the GCS on UDP port 5600,
-        // so listen for that out of the box instead of starting with video disabled.
-        _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoSourceUDPH264);
+#if defined(QGC_GST_STREAMING)
+        // Skydroid G12-H: the camera (C10Pro etc.) streams RTSP on the 192.168.144.x network.
+        _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoSourceRTSP);
 #else
         _nameToMetaDataMap[videoSourceName]->setRawDefaultValue(videoDisabled);
 #endif

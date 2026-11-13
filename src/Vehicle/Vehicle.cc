@@ -2644,6 +2644,20 @@ bool Vehicle::_sendMavCommandShouldRetry(MAV_CMD command)
 
 void Vehicle::_sendMavCommandWorker(bool commandInt, bool requestMessage, bool showError, MavCmdResultHandler resultHandler, void* resultHandlerData, int targetCompId, MAV_CMD command, MAV_FRAME frame, float param1, float param2, float param3, float param4, float param5, float param6, float param7)
 {
+    if ((command == MAV_CMD_PREFLIGHT_STORAGE || command == MAV_CMD_PREFLIGHT_CALIBRATION) &&
+            !qgcApp()->toolbox()->corePlugin()->adminUnlocked()) {
+        qCWarning(VehicleLog) << "Command blocked: admin lock active" << command;
+        if (resultHandler) {
+            (*resultHandler)(resultHandlerData, targetCompId, MAV_RESULT_DENIED, MavCmdResultCommandResultOnly);
+        } else {
+            emit mavCommandResult(_id, targetCompId, command, MAV_RESULT_DENIED, MavCmdResultCommandResultOnly);
+        }
+        if (showError) {
+            qgcApp()->showAppMessage(tr("Locked. Admin unlock is required."));
+        }
+        return;
+    }
+
     int entryIndex = _findMavCommandListEntryIndex(targetCompId, command);
     if (entryIndex != -1 || targetCompId == MAV_COMP_ID_ALL) {
         bool    compIdAll       = targetCompId == MAV_COMP_ID_ALL;

@@ -67,6 +67,7 @@ public:
     /// Admin lock for Firmware and Parameters
     Q_INVOKABLE bool unlockAdmin(const QString& password);
     Q_INVOKABLE void lockAdmin  ();
+    Q_INVOKABLE int  adminLockoutSecondsRemaining() const;
     bool adminUnlocked() const { return _adminUnlocked; }
 
     /// The list of settings under the Settings Menu
@@ -217,6 +218,8 @@ protected:
     bool                _showAdvancedUI;
     bool                _adminUnlocked  = false;
     QTimer*             _adminLockTimer = nullptr;
+    int                 _adminFailedAttempts = 0;
+    qint64              _adminLockedUntilMSecs = 0;
     Vehicle*            _activeVehicle  = nullptr;
     QGCCameraManager*   _cameraManager  = nullptr;
     QGCCameraControl*   _currentCamera  = nullptr;
